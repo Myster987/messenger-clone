@@ -1,17 +1,21 @@
-version: '3.9'
-
 services:
-  db: 
-    container_name: "db_postgres"
-    restart: allways
-    image: postgres:latest
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - 5436:5432
-    volumes:
-      - db_data:/var/lib/postgresql/data
+      - 5173:5173
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-volumes:
-  db_data:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=${DATABASE_URL}
+    develop:
+      watch:
+        - path: ./package.json
+          action: rebuild
+        - path: ./bun.lockb
+          action: rebuild
+        - path: ./
+          target: /app
+          action: sync
