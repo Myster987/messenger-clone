@@ -1,20 +1,27 @@
-import { pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 
-export const users = pgTable('users', {
-	id: varchar('id', { length: 20 }).notNull().primaryKey(),
-	createdAt: timestamp('created_at').defaultNow(),
-	email: varchar('email', { length: 64 }).notNull().unique(),
-	password: varchar('password', { length: 128}).notNull()
+export const users = sqliteTable("user", {
+	id: text("id").notNull().primaryKey(),
+	createdAt: text("created_at").notNull().default(sql`current_timestamp`),
+	email: text("email").notNull().unique(),
+	password: text("password").notNull(),
+	fullName: text("full_name").notNull(),
+	profileImageId: text("profile_image_id").notNull().references(() => profileImages.id, { onDelete: "cascade"}),
 });
-                                                               
-export const sessions = pgTable('sessions', {
-	id: varchar('id', { length: 20 }).notNull().primaryKey(),
-	userId: varchar('user_id', { length: 20})
+
+export const sessions = sqliteTable("session", {
+	id: text("id").notNull().primaryKey(),
+	userId: text("user_id")
 		.notNull()
 		.references(() => users.id),
-    expiresAt: timestamp("expires_at", {
-            withTimezone: true,
-            mode: "date"
-        }).notNull()
+	expiresAt: integer("expires_at").notNull()
 });
+
+export const profileImages = sqliteTable("profile_images", {
+	id: text("id").notNull().primaryKey(),
+	createdAt: text("created_at").notNull().default(sql`current_timestamp`),
+	imageUrl: text("image_url").notNull(),
+	publicId: text("public_id").notNull()
+})

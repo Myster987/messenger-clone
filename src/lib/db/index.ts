@@ -1,6 +1,7 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { SECRET_DATABASE_TOKEN, SECRET_DATABASE_URL } from '$env/static/private';
+import { drizzle } from 'drizzle-orm/libsql';
+import { createClient } from '@libsql/client';
 
-const client = postgres(process.env.DATABASE_URL!);
+const client = createClient({ url: SECRET_DATABASE_URL, authToken: SECRET_DATABASE_TOKEN });
 
 export const db = drizzle(client);
