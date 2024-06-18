@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { verify} from "@node-rs/argon2"
+import { verify } from '@node-rs/argon2';
 import { checkIfUserExists } from '@/db/queries';
 import { createUserSession } from '@/auth/handlers';
 import { signInFormSchema } from '@/auth/form_schemas';
@@ -30,7 +30,7 @@ export const actions: Actions = {
 				form
 			});
 		}
-        const validPassword = await verify(user.password, formData.password);
+		const validPassword = await verify(user.password, formData.password);
 
 		if (!validPassword) {
 			return fail(400, {
@@ -44,6 +44,6 @@ export const actions: Actions = {
 		if (redirectTo) {
 			redirect(302, `/${redirectTo.slice(1)}`);
 		}
-		redirect(302, '/');
+		redirect(302, `/user/${user.id}`);
 	}
 };

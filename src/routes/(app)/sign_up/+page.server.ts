@@ -1,11 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { generateId } from 'lucia';
 import { hash } from '@node-rs/argon2';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { signUpFormSchema } from '@/auth/form_schemas';
 import { createUserSession } from '@/auth/handlers';
-import { insertUser } from '@/db/queries';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -15,7 +13,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, cookies }) => {
+	default: async ({ request, cookies, locals: { honoClient } }) => {
 		const form = await superValidate(request, zod(signUpFormSchema));
 		if (!form.valid) {
 			return fail(400, {
@@ -23,23 +21,26 @@ export const actions: Actions = {
 			});
 		}
 		const formData = form.data;
-		const userId = generateId(20);
 		const hashedPassword = await hash(formData.password);
 
-		const success = await insertUser.execute({
-			id: userId,
-			email: formData.email,
-			password: hashedPassword,
-            fullName: formData.fullName
+		const res = await honoClient.api.auth.user.$post({
+			form: {
+				email: formData.email,
+				password: hashedPassword,
+				fullName: formData.fullName
+			}
 		});
 
-		if (success.rowsAffected == 0) {
-			return fail(400, {
+		const { userId } = await res.json();
+
+		if (!userId || res.status >= 400) {
+			return fail(res.status, {
 				form
 			});
 		}
+
 		await createUserSession(userId, cookies);
 
-		redirect(302, '/');
+		redirect(302, `/user/${userId}`);
 	}
 };
