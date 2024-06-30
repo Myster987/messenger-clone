@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { db } from '.';
 import * as schema from './schema';
 
@@ -37,5 +37,20 @@ export const queryUserProfileImageById = db.query.users
 		with: {
 			profileImage: true
 		}
+	})
+	.prepare();
+
+export const queryUserConversations = db.query.conversations
+	.findMany({
+		with: {
+			members: {
+				where: eq(schema.conversationMembers.userId, sql.placeholder('userId')),
+				limit: 0
+			},
+			conversationImage: true
+		},
+		orderBy: [desc(schema.conversations.lastMessageAt)],
+		limit: sql.placeholder('limit'),
+		offset: sql.placeholder('offset')
 	})
 	.prepare();
