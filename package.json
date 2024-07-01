@@ -42,6 +42,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@hono/node-ws": "^1.0.1",
 		"@hono/zod-validator": "^0.2.2",
 		"@internationalized/date": "^3.5.4",
 		"@libsql/client": "^0.6.2",

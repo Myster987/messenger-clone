@@ -9,5 +9,20 @@ const client = createClient({ url: SECRET_DATABASE_URL, authToken: SECRET_DATABA
 export const db = drizzle(client, { schema });
 
 export const createFtsTable = async () => {
-	db.run(sql`CREATE VIRTUAL TABLE users_fts (user_id, user_full_name)`);
+	const res = await db.run(
+		sql`CREATE VIRTUAL TABLE  users_fts USING fts5 (user_id, user_full_name, user_profile_image_id);`
+	);
+	console.log(res);
+
+	await db.run(
+		sql`CREATE TRIGGER inser_users_fts after INSERT on users begin INSERT INTO users_fts (user_id, user_full_name, user_profile_image_id) VALUES (NEW.id, NEW.full_name, NEW.profile_image_id); end;`
+	);
+	await db.run(
+		sql`CREATE TRIGGER update_users_fts after UPDATE on users begin UPDATE users_fts SET user_id = NEW.id, user_full_name = NEW.full_name, user_profile_image_id = NEW.profile_image_id WHERE user_id = NEW.id; end;`
+	);
+	await db.run(
+		sql`CREATE TRIGGER delete_users_fts after DELETE on users begin DELETE FROM users_fts WHERE user_id = OLD.id; end;`
+	);
 };
+
+// await createFtsTable();
