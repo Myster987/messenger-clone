@@ -31,7 +31,7 @@ export const insertProfileImage = db
 	.returning()
 	.prepare();
 
-export const queryUserProfileImageById = db.query.users
+export const queryUserByIdWithProfileImage = db.query.users
 	.findFirst({
 		where: eq(schema.users.id, sql.placeholder('userId')),
 		with: {
@@ -47,10 +47,20 @@ export const queryUserConversations = db.query.conversations
 				where: eq(schema.conversationMembers.userId, sql.placeholder('userId')),
 				limit: 0
 			},
-			conversationImage: true
+			conversationImages: true
 		},
 		orderBy: [desc(schema.conversations.lastMessageAt)],
 		limit: sql.placeholder('limit'),
 		offset: sql.placeholder('offset')
 	})
 	.prepare();
+
+export const queryUsersByName = async (fullName: string, limit = 15, offset = 0) => {
+	const res = await db.run(
+		sql`SELECT users.id, users.full_name, users.profile_image_id  FROM users INNER JOIN users_fts ON users_fts.user_id = users.id WHERE users_fts MATCH 'user_full_name:' || ${fullName} ORDER BY rank LIMIT ${limit} OFFSET ${offset}`
+	);
+	const data = await Promise.all(
+		res.rows.map((val) => queryUserByIdWithProfileImage.get({ userId: val.id }))
+	);
+	return data;
+};

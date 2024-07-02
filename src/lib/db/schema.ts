@@ -54,18 +54,12 @@ export const conversations = sqliteTable('conversations', {
 		.notNull()
 		.default(sql`current_timestamp`),
 	name: text('name').notNull(),
-	isGroup: integer('is_group', { mode: 'boolean' }),
-	conversationImageId: text('conversation_image_id')
-		.notNull()
-		.references(() => conversationImages.id)
+	isGroup: integer('is_group', { mode: 'boolean' })
 });
 
-export const conversationsRelations = relations(conversations, ({ many, one }) => ({
+export const conversationsRelations = relations(conversations, ({ many }) => ({
 	members: many(conversationMembers),
-	conversationImage: one(conversationImages, {
-		fields: [conversations.conversationImageId],
-		references: [conversationImages.id]
-	})
+	conversationImages: many(conversationImages)
 }));
 
 export const conversationImages = sqliteTable('conversation_images', {
@@ -74,8 +68,18 @@ export const conversationImages = sqliteTable('conversation_images', {
 		.notNull()
 		.default(sql`current_timestamp`),
 	imageUrl: text('image_url').notNull(),
-	publicId: text('public_id').notNull()
+	publicId: text('public_id').notNull(),
+	conversationId: text('conversation_id')
+		.notNull()
+		.references(() => conversations.id)
 });
+
+export const conversationImagesRelations = relations(conversationImages, ({ one }) => ({
+	conversation: one(conversations, {
+		fields: [conversationImages.conversationId],
+		references: [conversations.id]
+	})
+}));
 
 export const conversationMembers = sqliteTable('conversation_members', {
 	id: text('id').notNull().primaryKey(),
