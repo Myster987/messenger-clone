@@ -15,10 +15,27 @@ export const insertUser = db
 		email: sql.placeholder('email'),
 		password: sql.placeholder('password'),
 		fullName: sql.placeholder('fullName'),
-		profileImageId: sql.placeholder('profileImageId')
+		profileImageId: sql.placeholder('profileImageId'),
+		isOnline: sql.placeholder('isOnline')
 	})
 	.onConflictDoNothing()
 	.returning()
+	.prepare();
+
+export const updateUserStatusToOfflineById = db
+	.update(schema.users)
+	.set({
+		isOnline: false
+	})
+	.where(eq(schema.users.id, sql.placeholder('userId')))
+	.prepare();
+
+export const updateUserStatusToOnlineById = db
+	.update(schema.users)
+	.set({
+		isOnline: true
+	})
+	.where(eq(schema.users.id, sql.placeholder('userId')))
 	.prepare();
 
 export const insertProfileImage = db
@@ -36,6 +53,35 @@ export const queryUserByIdWithProfileImage = db.query.users
 		where: eq(schema.users.id, sql.placeholder('userId')),
 		with: {
 			profileImage: true
+		}
+	})
+	.prepare();
+
+export const queryUserByIdWithProfileImageWithoutPassword = db.query.users
+	.findFirst({
+		where: eq(schema.users.id, sql.placeholder('userId')),
+		with: {
+			profileImage: true
+		},
+		columns: {
+			password: false
+		}
+	})
+	.prepare();
+
+export const minimalQueryUserByIdWithProfileImage = db.query.users
+	.findFirst({
+		where: eq(schema.users.id, sql.placeholder('userId')),
+		with: {
+			profileImage: {
+				columns: {
+					imageUrl: true
+				}
+			}
+		},
+		columns: {
+			id: true,
+			fullName: true
 		}
 	})
 	.prepare();
@@ -60,7 +106,13 @@ export const queryUsersByName = async (fullName: string, limit = 15, offset = 0)
 		sql`SELECT users.id, users.full_name, users.profile_image_id  FROM users INNER JOIN users_fts ON users_fts.user_id = users.id WHERE users_fts MATCH 'user_full_name:' || ${fullName} ORDER BY rank LIMIT ${limit} OFFSET ${offset}`
 	);
 	const data = await Promise.all(
-		res.rows.map((val) => queryUserByIdWithProfileImage.get({ userId: val.id }))
+		res.rows.map((val) => minimalQueryUserByIdWithProfileImage.get({ userId: val.id }))
 	);
-	return data;
+	return data as {
+		id: string;
+		fullName: string;
+		profileImage: {
+			imageUrl: string;
+		};
+	}[];
 };

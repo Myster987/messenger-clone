@@ -53,7 +53,8 @@ export const authRoute = new Hono().post(
 				email: body.email,
 				password: body.password,
 				fullName: body.fullName,
-				profileImageId: imageInsertionRes.id
+				profileImageId: imageInsertionRes.id,
+				isOnline: true
 			});
 
 			if (!userInsertionRes) {

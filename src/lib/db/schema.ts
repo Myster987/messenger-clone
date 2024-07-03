@@ -9,6 +9,7 @@ export const users = sqliteTable('users', {
 	email: text('email').notNull().unique(),
 	password: text('password').notNull(),
 	fullName: text('full_name').notNull(),
+	isOnline: integer('is_online', { mode: 'boolean' }).notNull().default(false),
 	profileImageId: text('profile_image_id')
 		.notNull()
 		.references(() => profileImages.id)

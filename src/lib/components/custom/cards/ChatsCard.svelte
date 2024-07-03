@@ -36,10 +36,23 @@
 						<li class="w-full">
 							<Button variant="ghost" class="h-16 w-full p-2">
 								<Avatar.Root>
-									<Avatar.Image
-										src={conversation.conversationImage.imageUrl}
-										alt="Image of {conversation.name}"
-									/>
+									{#if conversation.conversationImages.length == 2}
+										<div class="relative">
+											<Avatar.Image
+												src={conversation.conversationImages[0].imageUrl}
+												alt="Image of {conversation.name} member"
+											/>
+											<Avatar.Image
+												src={conversation.conversationImages[1].imageUrl}
+												alt="Image of {conversation.name} member"
+											/>
+										</div>
+									{:else}
+										<Avatar.Image
+											src={conversation.conversationImages[0].imageUrl}
+											alt="Image of {conversation.name}"
+										/>
+									{/if}
 									<Avatar.Fallback
 										>{conversation.name
 											.split(' ')

@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { verify } from '@node-rs/argon2';
-import { checkIfUserExists } from '@/db/queries';
+import { checkIfUserExists, updateUserStatusToOnlineById } from '@/db/queries';
 import { createUserSession } from '@/auth/handlers';
 import { signInFormSchema } from '@/auth/form_schemas';
 import type { Actions, PageServerLoad } from './$types';
@@ -38,7 +38,11 @@ export const actions: Actions = {
 			});
 		}
 
-		await createUserSession(user.id, cookies);
+		await Promise.all([
+			createUserSession(user.id, cookies),
+			updateUserStatusToOnlineById.run({ userId: user.id })
+		]);
+
 		const redirectTo = url.searchParams.get('redirectTo');
 
 		if (redirectTo) {

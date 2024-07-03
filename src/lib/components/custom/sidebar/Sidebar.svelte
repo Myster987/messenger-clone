@@ -2,9 +2,10 @@
 	import { MessageCircle, UsersRound, PanelLeft } from 'lucide-svelte';
 	import { userStore } from '@/stores';
 	import { Button } from '@/components/ui/button';
-	import { ThemeButton } from '@/components/custom/buttons';
-	import * as Avatar from '@/components/ui/avatar';
+	import { SignOutButton, ThemeButton, UserProfileButton } from '@/components/custom/buttons';
+	import { ProfileImage } from '@/components/custom/profile_image';
 	import * as Tooltip from '@/components/ui/tooltip';
+	import * as Popover from '@/components/ui/popover';
 
 	let expanded = false;
 </script>
@@ -56,25 +57,7 @@
 
 	<div class="flex gap-1 {expanded ? 'flex-row' : 'flex-col'}">
 		<div class="grow">
-			<Button
-				variant="ghost"
-				size="icon"
-				class={expanded ? 'w-full justify-start gap-2 pl-1 text-base' : ''}
-			>
-				<Avatar.Root class="h-8 w-8">
-					<Avatar.Image src={$userStore?.profileImage.imageUrl} alt={$userStore?.fullName} />
-					<Avatar.Fallback
-						>{$userStore?.fullName
-							.split(' ')
-							.map((val) => val.at(0))
-							.join('')}</Avatar.Fallback
-					>
-				</Avatar.Root>
-
-				{#if expanded}
-					{$userStore?.fullName.split(' ').at(0)}
-				{/if}
-			</Button>
+			<UserProfileButton {expanded} />
 		</div>
 		<div>
 			<Button variant="ghost" size="icon" on:click={() => (expanded = !expanded)}
