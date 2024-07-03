@@ -1,12 +1,15 @@
 <script lang="ts">
+	import { cn } from '@/utils';
 	import * as Avatar from '@/components/ui/avatar';
 
+	let className: string | undefined = undefined;
 	export let name: string;
 	export let imageUrl: string | undefined;
+	export { className as class };
 </script>
 
-<Avatar.Root class="h-8 w-8">
-	<Avatar.Image src={imageUrl} alt="Image of {name}" />
+<Avatar.Root class={cn('h-8 w-8', className)}>
+	<Avatar.Image src={imageUrl} alt="Image of {name}" on:load />
 	<Avatar.Fallback
 		>{name
 			.split(' ')

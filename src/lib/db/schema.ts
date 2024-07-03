@@ -1,4 +1,4 @@
-import { relations, sql } from 'drizzle-orm';
+import { relations, sql, type InferInsertModel, type InferSelectModel } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
@@ -21,6 +21,8 @@ export const usersRelations = relations(users, ({ one }) => ({
 		references: [profileImages.id]
 	})
 }));
+export type SelectUsers = InferSelectModel<typeof users>;
+export type InsertUsers = InferInsertModel<typeof users>;
 
 export const sessions = sqliteTable('sessions', {
 	id: text('id').notNull().primaryKey(),
@@ -29,6 +31,8 @@ export const sessions = sqliteTable('sessions', {
 		.references(() => users.id),
 	expiresAt: integer('expires_at').notNull()
 });
+export type SelectSessions = InferSelectModel<typeof sessions>;
+export type InsertSessions = InferInsertModel<typeof sessions>;
 
 export const profileImages = sqliteTable('profile_images', {
 	id: text('id').notNull().primaryKey(),
@@ -45,6 +49,8 @@ export const profileImagesRelations = relations(profileImages, ({ one }) => ({
 		references: [users.profileImageId]
 	})
 }));
+export type SelectProfileImages = InferSelectModel<typeof profileImages>;
+export type InsertProfileImages = InferInsertModel<typeof profileImages>;
 
 export const conversations = sqliteTable('conversations', {
 	id: text('id').notNull().primaryKey(),
@@ -62,6 +68,8 @@ export const conversationsRelations = relations(conversations, ({ many }) => ({
 	members: many(conversationMembers),
 	conversationImages: many(conversationImages)
 }));
+export type SelectConversations = InferSelectModel<typeof conversations>;
+export type InsertConversations = InferInsertModel<typeof conversations>;
 
 export const conversationImages = sqliteTable('conversation_images', {
 	id: text('id').notNull().primaryKey(),
@@ -81,6 +89,8 @@ export const conversationImagesRelations = relations(conversationImages, ({ one 
 		references: [conversations.id]
 	})
 }));
+export type SelectConversationImages = InferSelectModel<typeof conversationImages>;
+export type InsertConversationImages = InferInsertModel<typeof conversationImages>;
 
 export const conversationMembers = sqliteTable('conversation_members', {
 	id: text('id').notNull().primaryKey(),
@@ -107,6 +117,8 @@ export const conversationMembersRelations = relations(conversationMembers, ({ ma
 		references: [users.id]
 	})
 }));
+export type SelectConversationMembers = InferSelectModel<typeof conversationMembers>;
+export type InsertConversationMembers = InferInsertModel<typeof conversationMembers>;
 
 export const messages = sqliteTable('messages', {
 	id: text('id').notNull().primaryKey(),
@@ -130,6 +142,8 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 		references: [images.id]
 	})
 }));
+export type SelectMessages = InferSelectModel<typeof messages>;
+export type InsertMessages = InferInsertModel<typeof messages>;
 
 export const seenMessages = sqliteTable('seen_messages', {
 	id: text('id').notNull().primaryKey(),
@@ -156,6 +170,8 @@ export const seenMessagesRelations = relations(seenMessages, ({ one }) => ({
 		references: [messages.id]
 	})
 }));
+export type SelectSeenMessages = InferSelectModel<typeof seenMessages>;
+export type InsertSeenMessages = InferInsertModel<typeof seenMessages>;
 
 export const images = sqliteTable('images', {
 	id: text('id').notNull().primaryKey(),
@@ -165,3 +181,5 @@ export const images = sqliteTable('images', {
 	imageUrl: text('image_url').notNull(),
 	publicId: text('public_id').notNull()
 });
+export type SelectImages = InferSelectModel<typeof images>;
+export type InsertImages = InferInsertModel<typeof images>;

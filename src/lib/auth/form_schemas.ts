@@ -4,7 +4,7 @@ export const signUpFormSchema = z
 	.object({
 		fullName: z
 			.string({ required_error: 'Full name is required' })
-			.min(1, 'At least 1 character')
+			.min(2, 'At least 1 character')
 			.max(128, 'Full name is too long (Max 128 characters)')
 			.trim(),
 		email: z
@@ -40,4 +40,14 @@ export const signInFormSchema = z.object({
 		.min(6, 'Password must to be at least 6 chacracters long')
 		.max(255, 'Password is too long (Max 255 characters)')
 		.trim()
+});
+
+export const editUserSchema = z.object({
+	fullName: z
+		.string({ required_error: 'Full name is required' })
+		.min(2, 'At least 1 character')
+		.max(128, 'Full name is too long (Max 128 characters)'),
+	profileImage: z
+		.instanceof(File, { message: 'Image is required' })
+		.refine((file) => file.size > 0, 'Image should have more than 0 kb')
 });

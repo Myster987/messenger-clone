@@ -22,7 +22,7 @@
 		};
 	}}
 >
-	<Button type="submit" variant="ghost" class="flex w-full justify-start gap-1"
+	<Button type="submit" variant="ghost" class="flex w-full justify-start gap-2"
 		><LogOut /> Sign Out</Button
 	>
 </form>

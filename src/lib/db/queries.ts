@@ -48,6 +48,12 @@ export const insertProfileImage = db
 	.returning()
 	.prepare();
 
+export const queryUserById = db
+	.select()
+	.from(schema.users)
+	.where(eq(schema.users.id, sql.placeholder('userId')))
+	.prepare();
+
 export const queryUserByIdWithProfileImage = db.query.users
 	.findFirst({
 		where: eq(schema.users.id, sql.placeholder('userId')),
@@ -116,3 +122,9 @@ export const queryUsersByName = async (fullName: string, limit = 15, offset = 0)
 		};
 	}[];
 };
+
+export const deleteUserProfileImage = db
+	.delete(schema.profileImages)
+	.where(eq(schema.profileImages.id, sql.placeholder('profileImageId')))
+	.returning()
+	.prepare();
