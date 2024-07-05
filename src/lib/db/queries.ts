@@ -15,7 +15,6 @@ export const insertUser = db
 		email: sql.placeholder('email'),
 		password: sql.placeholder('password'),
 		fullName: sql.placeholder('fullName'),
-		profileImageId: sql.placeholder('profileImageId'),
 		isOnline: sql.placeholder('isOnline')
 	})
 	.onConflictDoNothing()
@@ -43,7 +42,8 @@ export const insertProfileImage = db
 	.values({
 		id: sql.placeholder('id'),
 		imageUrl: sql.placeholder('imageUrl'),
-		publicId: sql.placeholder('publicId')
+		publicId: sql.placeholder('publicId'),
+		userId: sql.placeholder('userId')
 	})
 	.returning()
 	.prepare();
@@ -109,7 +109,7 @@ export const queryUserConversations = db.query.conversations
 
 export const queryUsersByName = async (fullName: string, limit = 15, offset = 0) => {
 	const res = await db.run(
-		sql`SELECT users.id, users.full_name, users.profile_image_id  FROM users INNER JOIN users_fts ON users_fts.user_id = users.id WHERE users_fts MATCH 'user_full_name:' || ${fullName} ORDER BY rank LIMIT ${limit} OFFSET ${offset}`
+		sql`SELECT users.id FROM users INNER JOIN users_fts ON users_fts.user_id = users.id WHERE users_fts MATCH 'user_full_name:' || ${fullName} ORDER BY rank LIMIT ${limit} OFFSET ${offset}`
 	);
 	const data = await Promise.all(
 		res.rows.map((val) => minimalQueryUserByIdWithProfileImage.get({ userId: val.id }))
@@ -125,6 +125,6 @@ export const queryUsersByName = async (fullName: string, limit = 15, offset = 0)
 
 export const deleteUserProfileImage = db
 	.delete(schema.profileImages)
-	.where(eq(schema.profileImages.id, sql.placeholder('profileImageId')))
+	.where(eq(schema.profileImages.userId, sql.placeholder('userId')))
 	.returning()
 	.prepare();

@@ -50,4 +50,17 @@ export const editUserSchema = z.object({
 	profileImage: z
 		.instanceof(File, { message: 'Image is required' })
 		.refine((file) => file.size > 0, 'Image should have more than 0 kb')
+		.optional()
+});
+
+export const apiEditUserSchema = z.object({
+	fullName: z
+		.string({ required_error: 'Full name is required' })
+		.min(2, 'At least 1 character')
+		.max(128, 'Full name is too long (Max 128 characters)'),
+	profileImage: z
+		.instanceof(File, { message: 'Image is required' })
+		.refine((file) => file.size > 0, 'Image should have more than 0 kb')
+		.or(z.string())
+		.optional()
 });

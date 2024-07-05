@@ -19,7 +19,7 @@
 		>
 			<ProfileImage
 				name={$userStore?.fullName || ''}
-				imageUrl={$userStore?.profileImage.imageUrl}
+				imageUrl={$userStore?.profileImage?.imageUrl}
 			/>
 
 			{#if expanded}

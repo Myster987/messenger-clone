@@ -9,17 +9,11 @@ export const users = sqliteTable('users', {
 	email: text('email').notNull().unique(),
 	password: text('password').notNull(),
 	fullName: text('full_name').notNull(),
-	isOnline: integer('is_online', { mode: 'boolean' }).notNull().default(false),
-	profileImageId: text('profile_image_id')
-		.notNull()
-		.references(() => profileImages.id)
+	isOnline: integer('is_online', { mode: 'boolean' }).notNull().default(false)
 });
 
 export const usersRelations = relations(users, ({ one }) => ({
-	profileImage: one(profileImages, {
-		fields: [users.profileImageId],
-		references: [profileImages.id]
-	})
+	profileImage: one(profileImages)
 }));
 export type SelectUsers = InferSelectModel<typeof users>;
 export type InsertUsers = InferInsertModel<typeof users>;
@@ -40,13 +34,16 @@ export const profileImages = sqliteTable('profile_images', {
 		.notNull()
 		.default(sql`current_timestamp`),
 	imageUrl: text('image_url').notNull(),
-	publicId: text('public_id').notNull()
+	publicId: text('public_id').notNull(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id)
 });
 
 export const profileImagesRelations = relations(profileImages, ({ one }) => ({
 	user: one(users, {
-		fields: [profileImages.id],
-		references: [users.profileImageId]
+		fields: [profileImages.userId],
+		references: [users.id]
 	})
 }));
 export type SelectProfileImages = InferSelectModel<typeof profileImages>;

@@ -9,7 +9,7 @@
 </script>
 
 <Avatar.Root class={cn('h-8 w-8', className)}>
-	<Avatar.Image src={imageUrl} alt="Image of {name}" on:load />
+	<Avatar.Image src={imageUrl} alt="Image of {name}" on:load class="pointer-events-none" />
 	<Avatar.Fallback
 		>{name
 			.split(' ')

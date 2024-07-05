@@ -1,5 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
+import { message, superValidate, withFiles } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { editUserSchema } from '@/auth/form_schemas';
 import type { Actions, PageServerLoad } from './$types';
@@ -12,10 +11,13 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	editUserFullName: async ({ params, locals: { honoClient }, request }) => {
-		const formData = Object.fromEntries(await request.formData()) as unknown as {
-			fullName: string;
-			profileImage: File;
-		};
+		const form = await superValidate(request, zod(editUserSchema));
+
+		if (!form.valid) {
+			return message(withFiles(form), { text: 'Invalid form', success: false });
+		}
+
+		const formData = form.data;
 
 		const res = await honoClient.api.users[':userId'].$patch({
 			param: params,
@@ -25,11 +27,16 @@ export const actions: Actions = {
 		const { success } = await res.json();
 
 		if (!success) {
-			return fail(res.status);
+			return message(
+				withFiles(form),
+				{ text: 'Something went wrong', success: false },
+				{ status: 500 }
+			);
 		}
 
-		return {
-			success
-		};
+		return message(withFiles(form), {
+			text: 'Account has been edited successfully',
+			success: true
+		});
 	}
 };

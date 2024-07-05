@@ -31,21 +31,10 @@ export const authRoute = new Hono().post(
 			const body = c.req.valid('form');
 
 			const image = read(DefaultProfileImage) as unknown as File;
-
 			const uploadData = await uploadImage(image);
 
 			if (uploadData.http_code >= 400) {
 				throw Error('Something went wrong when uploading profile image');
-			}
-
-			const imageInsertionRes = await insertProfileImage.get({
-				id: generateId(),
-				imageUrl: uploadData.secure_url,
-				publicId: uploadData.public_id
-			});
-
-			if (!imageInsertionRes) {
-				throw Error('Something went wrong when inserting profile image');
 			}
 
 			const userInsertionRes = await insertUser.get({
@@ -53,12 +42,22 @@ export const authRoute = new Hono().post(
 				email: body.email,
 				password: body.password,
 				fullName: body.fullName,
-				profileImageId: imageInsertionRes.id,
 				isOnline: true
 			});
 
 			if (!userInsertionRes) {
 				throw Error('Something went wrong when inserting user');
+			}
+
+			const imageInsertionRes = await insertProfileImage.get({
+				id: generateId(),
+				imageUrl: uploadData.secure_url,
+				publicId: uploadData.public_id,
+				userId: userInsertionRes.id
+			});
+
+			if (!imageInsertionRes) {
+				throw Error('Something went wrong when inserting profile image');
 			}
 
 			return c.json({
