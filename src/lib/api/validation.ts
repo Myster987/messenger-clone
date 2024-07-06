@@ -25,3 +25,8 @@ export const pageQueryParams = (defaultPage = 0) =>
 		})
 		.optional()
 		.default({ page: defaultPage });
+
+export const postNewConversation = z.object({
+	firstUserId: z.string().min(1).max(20),
+	secondUserId: z.string().min(1).max(20)
+});

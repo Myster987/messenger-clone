@@ -8,7 +8,7 @@ export const userStore = writable<User | null>(null);
 
 type Conversations = InferQueryModel<
 	'conversations',
-	{ with: { members: true; conversationImages: true } }
+	{ with: { members: true; conversationImages: { columns: { imageUrl: true } } } }
 >;
 
 export const conversationsStore = createAsyncStore<Conversations[]>();

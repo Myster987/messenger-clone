@@ -2,16 +2,10 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { customQueryParams } from '../validation';
 import { apiEditUserSchema } from '@/auth/form_schemas';
-import { generateId } from '@/auth/generate_id';
 import { deleteImagesFromCloudinary, uploadImage } from '../cloudinary';
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
-import {
-	deleteUserProfileImage,
-	insertProfileImage,
-	queryUserById,
-	queryUsersByName
-} from '@/db/queries';
+import { queryUserByIdWithProfileImage, queryUsersByName } from '@/db/queries';
 import * as schema from '@/db/schema';
 
 export const usersRoute = new Hono()
@@ -35,16 +29,15 @@ export const usersRoute = new Hono()
 				const body = c.req.valid('form');
 
 				const newUserData: Partial<schema.InsertUsers> = {};
-				const userData = await queryUserById.get({ userId });
+				const userData = await queryUserByIdWithProfileImage.get({ userId });
 
-				// image upload
-				const uploadProfileImage = async (userId: string, imageToUpload: File) => {
-					const imageToDelete = await deleteUserProfileImage.get({
-						userId
-					});
-					const fileDeleteResult = await deleteImagesFromCloudinary([
-						imageToDelete?.publicId || ''
-					]);
+				// image update
+				const uploadProfileImage = async (
+					imagePublicId: string,
+					userId: string,
+					imageToUpload: File
+				) => {
+					const fileDeleteResult = await deleteImagesFromCloudinary([imagePublicId]);
 
 					if (!fileDeleteResult) {
 						throw Error(
@@ -63,12 +56,14 @@ export const usersRoute = new Hono()
 						);
 					}
 
-					const profileImageData = await insertProfileImage.get({
-						id: generateId(20),
-						imageUrl: uploadData.secure_url,
-						publicId: uploadData.public_id,
-						userId
-					});
+					const profileImageData = await db
+						.update(schema.profileImages)
+						.set({
+							imageUrl: uploadData.secure_url,
+							publicId: uploadData.public_id
+						})
+						.where(eq(schema.profileImages.userId, userId))
+						.returning();
 
 					if (!profileImageData) {
 						throw Error(
@@ -78,7 +73,7 @@ export const usersRoute = new Hono()
 				};
 
 				if (typeof body.profileImage != 'string' && typeof body.profileImage != 'undefined') {
-					await uploadProfileImage(userId, body.profileImage);
+					await uploadProfileImage(userData?.profileImage?.id as string, userId, body.profileImage);
 				}
 
 				if (body.fullName != userData?.fullName) {

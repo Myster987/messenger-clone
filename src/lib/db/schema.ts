@@ -58,12 +58,16 @@ export const conversations = sqliteTable('conversations', {
 		.notNull()
 		.default(sql`current_timestamp`),
 	name: text('name').notNull(),
-	isGroup: integer('is_group', { mode: 'boolean' })
+	isGroup: integer('is_group', { mode: 'boolean' }).notNull(),
+	conversationImageId: text('conversation_image_id').references(() => conversationImages.id)
 });
 
-export const conversationsRelations = relations(conversations, ({ many }) => ({
+export const conversationsRelations = relations(conversations, ({ many, one }) => ({
 	members: many(conversationMembers),
-	conversationImages: many(conversationImages)
+	conversationImages: one(conversationImages, {
+		fields: [conversations.conversationImageId],
+		references: [conversationImages.id]
+	})
 }));
 export type SelectConversations = InferSelectModel<typeof conversations>;
 export type InsertConversations = InferInsertModel<typeof conversations>;
@@ -74,17 +78,11 @@ export const conversationImages = sqliteTable('conversation_images', {
 		.notNull()
 		.default(sql`current_timestamp`),
 	imageUrl: text('image_url').notNull(),
-	publicId: text('public_id').notNull(),
-	conversationId: text('conversation_id')
-		.notNull()
-		.references(() => conversations.id)
+	publicId: text('public_id').notNull()
 });
 
 export const conversationImagesRelations = relations(conversationImages, ({ one }) => ({
-	conversation: one(conversations, {
-		fields: [conversationImages.conversationId],
-		references: [conversations.id]
-	})
+	conversation: one(conversations)
 }));
 export type SelectConversationImages = InferSelectModel<typeof conversationImages>;
 export type InsertConversationImages = InferInsertModel<typeof conversationImages>;

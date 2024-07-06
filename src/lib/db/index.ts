@@ -8,7 +8,7 @@ const client = createClient({ url: SECRET_DATABASE_URL, authToken: SECRET_DATABA
 
 export const db = drizzle(client, { schema });
 
-export const createFtsTable = async () => {
+export const createUsersFtsTable = async () => {
 	const res = await db.run(
 		sql`CREATE VIRTUAL TABLE  users_fts USING fts5 (user_id, user_full_name);`
 	);
@@ -25,4 +25,4 @@ export const createFtsTable = async () => {
 	);
 };
 
-// await createFtsTable();
+// await createUsersFtsTable();

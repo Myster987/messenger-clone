@@ -1,4 +1,4 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '.';
 import * as schema from './schema';
 
@@ -92,14 +92,16 @@ export const minimalQueryUserByIdWithProfileImage = db.query.users
 	})
 	.prepare();
 
-export const queryUserConversations = db.query.conversations
+export const queryUserConversations = db.query.conversationMembers
 	.findMany({
+		where: eq(schema.conversationMembers.userId, sql.placeholder('userId')),
 		with: {
-			members: {
-				where: eq(schema.conversationMembers.userId, sql.placeholder('userId')),
-				limit: 0
-			},
-			conversationImages: true
+			conversation: {
+				with: {
+					conversationImages: true,
+					members: { with: { user: { with: { profileImage: true } } } }
+				}
+			}
 		},
 		orderBy: [desc(schema.conversations.lastMessageAt)],
 		limit: sql.placeholder('limit'),
@@ -127,4 +129,45 @@ export const deleteUserProfileImage = db
 	.delete(schema.profileImages)
 	.where(eq(schema.profileImages.userId, sql.placeholder('userId')))
 	.returning()
+	.prepare();
+
+export const insertConversation = db
+	.insert(schema.conversations)
+	.values({
+		id: sql.placeholder('id'),
+		name: sql.placeholder('name'),
+		isGroup: sql.placeholder('isGroup')
+	})
+	.returning()
+	.prepare();
+
+export const insertConversationMember = db
+	.insert(schema.conversationMembers)
+	.values({
+		id: sql.placeholder('id'),
+		conversationId: sql.placeholder('conversationId'),
+		nick: sql.placeholder('nick'),
+		userId: sql.placeholder('userId')
+	})
+	.returning()
+	.prepare();
+
+export const insertConversationImage = db
+	.insert(schema.conversationImages)
+	.values({
+		id: sql.placeholder('id'),
+		conversationId: sql.placeholder('conversationId'),
+		userProfileImageId: sql.placeholder('userProfileImageId')
+	})
+	.returning()
+	.prepare();
+
+export const checkIfConversationExists = db.query.conversations
+	.findFirst({
+		with: {
+			members: {
+				where: inArray(schema.conversationMembers.userId, sql`${sql.placeholder('usersId')}`)
+			}
+		}
+	})
 	.prepare();

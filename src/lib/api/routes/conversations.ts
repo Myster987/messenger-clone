@@ -1,43 +1,131 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { pageQueryParams } from '../validation';
-import { queryUserConversations } from '@/db/queries';
+import { pageQueryParams, postNewConversation } from '../validation';
+import {
+	insertConversation,
+	insertConversationImage,
+	insertConversationMember,
+	queryUserByIdWithProfileImage,
+	queryUserConversations
+} from '@/db/queries';
+import { generateId } from '@/auth/generate_id';
+import { inArray } from 'drizzle-orm';
+import { db } from '@/db';
+import * as schema from '@/db/schema';
 
-export const conversationsRoute = new Hono().get(
-	'user/:userId',
-	zValidator('query', pageQueryParams(0), (result, c) => {
-		if (!result.success) {
-			return c.json(
-				{
-					success: false
-				},
-				400
-			);
+export const conversationsRoute = new Hono()
+	.get(
+		'user/:userId',
+		zValidator('query', pageQueryParams(0), (result, c) => {
+			if (!result.success) {
+				return c.json(
+					{
+						success: false
+					},
+					400
+				);
+			}
+		}),
+		async (c) => {
+			try {
+				const { userId } = c.req.param();
+				const { page } = c.req.valid('query');
+
+				const limit = 25;
+				const offset = page * limit;
+
+				const data = await queryUserConversations.all({ userId, limit, offset });
+
+				return c.json({
+					succcess: true,
+					data
+				});
+			} catch (error) {
+				console.log(c.req.path, error);
+				return c.json(
+					{
+						success: false,
+						data: null
+					},
+					500
+				);
+			}
 		}
-	}),
-	async (c) => {
+	)
+	.post('/chat', zValidator('json', postNewConversation), async (c) => {
 		try {
-			const { userId } = c.req.param();
-			const { page } = c.req.valid('query');
+			const body = c.req.valid('json');
 
-			const limit = 25;
-			const offset = page * limit;
+			const exists = await db.query.conversations.findFirst({
+				with: {
+					members: {
+						where: inArray(schema.conversationMembers.userId, [body.firstUserId, body.secondUserId])
+					}
+				}
+			});
 
-			const data = await queryUserConversations.all({ userId, limit, offset });
+			if (exists) {
+				return c.json(
+					{
+						success: false
+					},
+					400
+				);
+			}
+
+			const conversationInsertion = await insertConversation.get({
+				id: generateId(),
+				name: `${body.firstUserId}-${body.secondUserId}`,
+				isGroup: false
+			});
+
+			if (!conversationInsertion) {
+				throw Error('Something went wrong when inserting conversation');
+			}
+
+			const usersData = await Promise.all(
+				Object.values(body).map((val) => queryUserByIdWithProfileImage.get({ userId: val }))
+			);
+
+			const membersInsertion = await Promise.all(
+				usersData.map((user) =>
+					insertConversationMember.get({
+						id: generateId(),
+						conversationId: conversationInsertion.id,
+						userId: user?.id,
+						nick: user?.fullName
+					})
+				)
+			);
+
+			if (membersInsertion.length == 0) {
+				throw Error('Something went wrong when inserting conversation');
+			}
+
+			const imagesInsertion = await Promise.all(
+				usersData.map((user) =>
+					insertConversationImage.get({
+						id: generateId(),
+						conversationId: conversationInsertion.id,
+						userProfileImageId: user?.profileImage?.id
+					})
+				)
+			);
+
+			if (imagesInsertion.length == 0) {
+				throw Error('Something went wrong when inserting conversation');
+			}
 
 			return c.json({
-				succcess: true,
-				data
+				success: true
 			});
 		} catch (error) {
 			console.log(c.req.path, error);
 			return c.json(
 				{
-					success: false,
-					data: null
+					success: false
 				},
 				500
 			);
 		}
-	}
-);
+	});

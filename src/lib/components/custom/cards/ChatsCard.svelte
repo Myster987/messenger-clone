@@ -7,8 +7,11 @@
 	import * as Card from '@/components/ui/card';
 	import * as Command from '$lib/components/ui/command';
 	import * as Avatar from '$lib/components/ui/avatar';
+	import { DisplayChatName } from '../other';
 
 	let inputValue = '';
+
+	$: console.log($conversationsStore);
 </script>
 
 <Card.Root class="flex w-[360px] flex-col">
@@ -36,7 +39,7 @@
 						<li class="w-full">
 							<Button variant="ghost" class="h-16 w-full p-2">
 								<Avatar.Root>
-									{#if conversation.conversationImages.length == 2}
+									<!-- {#if conversation.conversationImages.length == 2}
 										<div class="relative">
 											<Avatar.Image
 												src={conversation.conversationImages[0].imageUrl}
@@ -52,7 +55,11 @@
 											src={conversation.conversationImages[0].imageUrl}
 											alt="Image of {conversation.name}"
 										/>
-									{/if}
+									{/if} -->
+									<Avatar.Image
+										src={conversation.conversationImages[0].imageUrl}
+										alt="Image of {conversation.name}"
+									/>
 									<Avatar.Fallback
 										>{conversation.name
 											.split(' ')
@@ -62,7 +69,13 @@
 								</Avatar.Root>
 
 								<div>
-									<p class="font-semibold">{conversation.name}</p>
+									{#if conversation.isGroup}
+										<p class="font-semibold">{conversation.name}</p>
+									{:else}
+										<p>
+											<DisplayChatName members={conversation.members} />
+										</p>
+									{/if}
 									<p></p>
 								</div>
 							</Button>
