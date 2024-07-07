@@ -1,4 +1,4 @@
-import { desc, eq, inArray, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from '.';
 import * as schema from './schema';
 
@@ -95,15 +95,22 @@ export const minimalQueryUserByIdWithProfileImage = db.query.users
 export const queryUserConversations = db.query.conversationMembers
 	.findMany({
 		where: eq(schema.conversationMembers.userId, sql.placeholder('userId')),
+		columns: {},
 		with: {
 			conversation: {
 				with: {
-					conversationImages: true,
-					members: { with: { user: { with: { profileImage: true } } } }
+					conversationImage: true,
+					members: {
+						with: {
+							user: {
+								with: { profileImage: true },
+								columns: { isOnline: true, fullName: true }
+							}
+						}
+					}
 				}
 			}
 		},
-		orderBy: [desc(schema.conversations.lastMessageAt)],
 		limit: sql.placeholder('limit'),
 		offset: sql.placeholder('offset')
 	})
@@ -131,12 +138,22 @@ export const deleteUserProfileImage = db
 	.returning()
 	.prepare();
 
-export const insertConversation = db
+export const insertConversationAsChat = db
 	.insert(schema.conversations)
 	.values({
 		id: sql.placeholder('id'),
 		name: sql.placeholder('name'),
-		isGroup: sql.placeholder('isGroup')
+		isGroup: false
+	})
+	.returning()
+	.prepare();
+
+export const insertConversationAsGroup = db
+	.insert(schema.conversations)
+	.values({
+		id: sql.placeholder('id'),
+		name: sql.placeholder('name'),
+		isGroup: true
 	})
 	.returning()
 	.prepare();
@@ -146,7 +163,6 @@ export const insertConversationMember = db
 	.values({
 		id: sql.placeholder('id'),
 		conversationId: sql.placeholder('conversationId'),
-		nick: sql.placeholder('nick'),
 		userId: sql.placeholder('userId')
 	})
 	.returning()
@@ -156,8 +172,8 @@ export const insertConversationImage = db
 	.insert(schema.conversationImages)
 	.values({
 		id: sql.placeholder('id'),
-		conversationId: sql.placeholder('conversationId'),
-		userProfileImageId: sql.placeholder('userProfileImageId')
+		imageUrl: sql.placeholder('imageUrl'),
+		publicId: sql.placeholder('publicId')
 	})
 	.returning()
 	.prepare();
