@@ -7,8 +7,22 @@ type User = Omit<InferQueryModel<'users', { with: { profileImage: true } }>, 'pa
 export const userStore = writable<User | null>(null);
 
 type Conversations = InferQueryModel<
-	'conversations',
-	{ with: { members: true; conversationImages: { columns: { imageUrl: true } } } }
+	'conversationMembers',
+	{
+		columns: { conversationId: false; createdAt: false; id: false; nick: false; userId: false };
+		with: {
+			conversation: {
+				with: {
+					conversationImage: true;
+					members: {
+						with: {
+							user: { with: { profileImage: true }; columns: { isOnline: true; fullName: true } };
+						};
+					};
+				};
+			};
+		};
+	}
 >;
 
 export const conversationsStore = createAsyncStore<Conversations[]>();

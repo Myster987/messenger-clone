@@ -7,6 +7,12 @@
 	export let data: LayoutData;
 
 	$: conversationsStore.updateAsync(data.streamed.conversations);
+	$: if ($conversationsStore.data)
+		$conversationsStore.data = $conversationsStore.data.sort((a, b) => {
+			const dateA = new Date(a.conversation.lastMessageAt) as unknown as number;
+			const dateB = new Date(b.conversation.lastMessageAt) as unknown as number;
+			return dateB - dateA;
+		});
 </script>
 
 <div class="flex h-full gap-4 p-4">
