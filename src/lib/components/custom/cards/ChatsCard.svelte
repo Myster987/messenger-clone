@@ -4,14 +4,11 @@
 	import { Button } from '@/components/ui/button';
 	import { Skeleton } from '@/components/ui/skeleton';
 	import { ScrollArea } from '@/components/ui/scroll-area';
+	import { DisplayChatName, DisplayConversationImage } from '../other';
 	import * as Card from '@/components/ui/card';
-	import * as Command from '$lib/components/ui/command';
-	import * as Avatar from '$lib/components/ui/avatar';
-	import { DisplayChatName } from '../other';
+	import * as Command from '@/components/ui/command';
 
 	let inputValue = '';
-
-	$: console.log($conversationsStore);
 </script>
 
 <Card.Root class="flex w-[360px] flex-col">
@@ -35,38 +32,15 @@
 		<ScrollArea class="h-full">
 			<ul class="mr-4 grid gap-1">
 				{#if $conversationsStore.data}
-					{#each $conversationsStore.data as conversation}
+					{#each $conversationsStore.data as { conversation } (conversation.id)}
 						<li class="w-full">
-							<Button variant="ghost" class="h-16 w-full p-2">
-								<Avatar.Root>
-									<!-- {#if conversation.conversationImages.length == 2}
-										<div class="relative">
-											<Avatar.Image
-												src={conversation.conversationImages[0].imageUrl}
-												alt="Image of {conversation.name} member"
-											/>
-											<Avatar.Image
-												src={conversation.conversationImages[1].imageUrl}
-												alt="Image of {conversation.name} member"
-											/>
-										</div>
-									{:else}
-										<Avatar.Image
-											src={conversation.conversationImages[0].imageUrl}
-											alt="Image of {conversation.name}"
-										/>
-									{/if} -->
-									<Avatar.Image
-										src={conversation.conversationImages[0].imageUrl}
-										alt="Image of {conversation.name}"
-									/>
-									<Avatar.Fallback
-										>{conversation.name
-											.split(' ')
-											.map((val) => val.at(0))
-											.join('')}</Avatar.Fallback
-									>
-								</Avatar.Root>
+							<Button variant="ghost" class="flex h-16 w-full justify-start gap-2 p-2">
+								<DisplayConversationImage
+									isGroup={conversation.isGroup}
+									conversationName={conversation.name}
+									conversationImage={conversation.conversationImage}
+									usersProfileImages={conversation.members.map((val) => val.user.profileImage)}
+								/>
 
 								<div>
 									{#if conversation.isGroup}
@@ -84,7 +58,7 @@
 				{:else if $conversationsStore.isLoading}
 					<div class="grid gap-4">
 						{#each Array(5) as _}
-							<li class="flex items-center space-x-4">
+							<li class="flex items-center space-x-4 p-2">
 								<Skeleton class="h-12 w-12 rounded-full" />
 								<div class="space-y-2">
 									<Skeleton class="h-5 w-[150px]" />

@@ -6,8 +6,25 @@
 		createdAt: string;
 		userId: string;
 		conversationId: string;
-		nick: string;
+		nick: string | null;
+		user: {
+			isOnline: boolean;
+			fullName: string;
+			profileImage: {
+				id: string;
+				createdAt: string;
+				imageUrl: string;
+				publicId: string;
+				userId: string;
+			} | null;
+		};
 	}[];
+
+	const secondUser = members.find((val) => val.userId != $userStore?.id);
 </script>
 
-{members.find((val) => val.userId != $userStore?.id)?.nick}
+{#if secondUser?.nick}
+	{secondUser.nick}
+{:else}
+	{secondUser?.user.fullName}
+{/if}
