@@ -1,5 +1,5 @@
 import { relations, sql, type InferInsertModel, type InferSelectModel } from 'drizzle-orm';
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
 	id: text('id').notNull().primaryKey(),
@@ -64,7 +64,7 @@ export const conversations = sqliteTable('conversations', {
 
 export const conversationsRelations = relations(conversations, ({ many, one }) => ({
 	members: many(conversationMembers),
-	conversationImages: one(conversationImages, {
+	conversationImage: one(conversationImages, {
 		fields: [conversations.conversationImageId],
 		references: [conversationImages.id]
 	})
@@ -87,19 +87,27 @@ export const conversationImagesRelations = relations(conversationImages, ({ one 
 export type SelectConversationImages = InferSelectModel<typeof conversationImages>;
 export type InsertConversationImages = InferInsertModel<typeof conversationImages>;
 
-export const conversationMembers = sqliteTable('conversation_members', {
-	id: text('id').notNull().primaryKey(),
-	createdAt: text('created_at')
-		.notNull()
-		.default(sql`current_timestamp`),
-	conversationId: text('conversation_id')
-		.notNull()
-		.references(() => conversations.id, { onDelete: 'cascade' }),
-	userId: text('user_id')
-		.notNull()
-		.references(() => users.id),
-	nick: text('nick').notNull()
-});
+export const conversationMembers = sqliteTable(
+	'conversation_members',
+	{
+		id: text('id').notNull().primaryKey(),
+		createdAt: text('created_at')
+			.notNull()
+			.default(sql`current_timestamp`),
+		conversationId: text('conversation_id')
+			.notNull()
+			.references(() => conversations.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id),
+		nick: text('nick')
+	},
+	(table) => {
+		return {
+			userIdIdx: index('user_id_idx').on(table.userId)
+		};
+	}
+);
 
 export const conversationMembersRelations = relations(conversationMembers, ({ many, one }) => ({
 	messages: many(messages),
