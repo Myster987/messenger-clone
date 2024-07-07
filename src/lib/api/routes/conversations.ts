@@ -2,10 +2,9 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { pageQueryParams, postNewConversation } from '../validation';
 import {
-	insertConversation,
-	insertConversationImage,
+	insertConversationAsChat,
 	insertConversationMember,
-	queryUserByIdWithProfileImage,
+	queryUserById,
 	queryUserConversations
 } from '@/db/queries';
 import { generateId } from '@/auth/generate_id';
@@ -73,10 +72,9 @@ export const conversationsRoute = new Hono()
 				);
 			}
 
-			const conversationInsertion = await insertConversation.get({
+			const conversationInsertion = await insertConversationAsChat.get({
 				id: generateId(),
-				name: `${body.firstUserId}-${body.secondUserId}`,
-				isGroup: false
+				name: `${body.firstUserId}-${body.secondUserId}`
 			});
 
 			if (!conversationInsertion) {
@@ -84,7 +82,7 @@ export const conversationsRoute = new Hono()
 			}
 
 			const usersData = await Promise.all(
-				Object.values(body).map((val) => queryUserByIdWithProfileImage.get({ userId: val }))
+				Object.values(body).map((val) => queryUserById.get({ userId: val }))
 			);
 
 			const membersInsertion = await Promise.all(
@@ -92,27 +90,12 @@ export const conversationsRoute = new Hono()
 					insertConversationMember.get({
 						id: generateId(),
 						conversationId: conversationInsertion.id,
-						userId: user?.id,
-						nick: user?.fullName
+						userId: user?.id
 					})
 				)
 			);
 
 			if (membersInsertion.length == 0) {
-				throw Error('Something went wrong when inserting conversation');
-			}
-
-			const imagesInsertion = await Promise.all(
-				usersData.map((user) =>
-					insertConversationImage.get({
-						id: generateId(),
-						conversationId: conversationInsertion.id,
-						userProfileImageId: user?.profileImage?.id
-					})
-				)
-			);
-
-			if (imagesInsertion.length == 0) {
 				throw Error('Something went wrong when inserting conversation');
 			}
 
