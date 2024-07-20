@@ -1,14 +1,9 @@
-import {
-	SECRET_CLOUDINARY_CLOUD_NAME,
-	SECRET_CLOUDINARY_API_KEY,
-	SECRET_CLOUDINARY_API_SECRET
-} from '$env/static/private';
 import { v2 as cloudinary, type UploadApiErrorResponse, type UploadApiResponse } from 'cloudinary';
 
 cloudinary.config({
-	cloud_name: SECRET_CLOUDINARY_CLOUD_NAME,
-	api_key: SECRET_CLOUDINARY_API_KEY,
-	api_secret: SECRET_CLOUDINARY_API_SECRET,
+	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET,
 	secure: true
 });
 
@@ -44,7 +39,7 @@ async function uploadMultipleImages(images: File[]) {
 
 async function deleteImagesFromCloudinary(publicIds: string[]): Promise<boolean> {
 	if (publicIds.length != 0) {
-		return cloudinary.api.delete_resources(publicIds, (err, res) => {
+		return cloudinary.api.delete_resources(publicIds, (err) => {
 			if (err) {
 				return false;
 			} else {
