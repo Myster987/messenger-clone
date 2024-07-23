@@ -33,7 +33,11 @@ export const conversationsRoute = new Hono()
 				const limit = 25;
 				const offset = page * limit;
 
-				const data = await queryUserConversations.all({ userId, limit, offset });
+				const data = await queryUserConversations.all({
+					userId,
+					limit,
+					offset
+				});
 
 				return c.json({
 					succcess: true,

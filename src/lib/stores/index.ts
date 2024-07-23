@@ -16,7 +16,10 @@ type Conversations = InferQueryModel<
 					conversationImage: true;
 					members: {
 						with: {
-							user: { with: { profileImage: true }; columns: { isOnline: true; fullName: true } };
+							user: {
+								with: { profileImage: { columns: { userId: true; imageUrl: true } } };
+								columns: { isOnline: true; fullName: true };
+							};
 						};
 					};
 				};

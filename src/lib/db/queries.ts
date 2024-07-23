@@ -103,7 +103,7 @@ export const queryUserConversations = db.query.conversationMembers
 					members: {
 						with: {
 							user: {
-								with: { profileImage: true },
+								with: { profileImage: { columns: { userId: true, imageUrl: true } } },
 								columns: { isOnline: true, fullName: true }
 							}
 						}

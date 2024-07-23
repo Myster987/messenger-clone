@@ -1,3 +1,4 @@
-export { usersRoute } from './users';
-export { authRoute } from './auth';
-export { conversationsRoute } from './conversations';
+export { usersRoute } from "./users";
+export { authRoute } from "./auth";
+export { conversationsRoute } from "./conversations";
+export { websocketRoutes } from "./websocket";

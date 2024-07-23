@@ -29,7 +29,9 @@ export const usersRoute = new Hono()
 				const body = c.req.valid('form');
 
 				const newUserData: Partial<schema.InsertUsers> = {};
-				const userData = await queryUserByIdWithProfileImage.get({ userId });
+				const userData = await queryUserByIdWithProfileImage.get({
+					userId
+				});
 
 				// image update
 				const uploadProfileImage = async (

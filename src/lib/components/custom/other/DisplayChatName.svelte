@@ -11,10 +11,7 @@
 			isOnline: boolean;
 			fullName: string;
 			profileImage: {
-				id: string;
-				createdAt: string;
 				imageUrl: string;
-				publicId: string;
 				userId: string;
 			} | null;
 		};

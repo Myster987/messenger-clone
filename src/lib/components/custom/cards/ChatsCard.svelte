@@ -34,25 +34,27 @@
 				{#if $conversationsStore.data}
 					{#each $conversationsStore.data as { conversation } (conversation.id)}
 						<li class="w-full">
-							<Button variant="ghost" class="flex h-16 w-full justify-start gap-2 p-2">
-								<DisplayConversationImage
-									isGroup={conversation.isGroup}
-									conversationName={conversation.name}
-									conversationImage={conversation.conversationImage}
-									usersProfileImages={conversation.members.map((val) => val.user.profileImage)}
-								/>
+							<a href="/user/{$userStore?.id}/chat/{conversation.id}">
+								<Button variant="ghost" class="flex h-16 w-full justify-start gap-2 p-2">
+									<DisplayConversationImage
+										isGroup={conversation.isGroup}
+										conversationName={conversation.name}
+										conversationImage={conversation.conversationImage}
+										usersProfileImages={conversation.members.map((val) => val.user.profileImage)}
+									/>
 
-								<div>
-									{#if conversation.isGroup}
-										<p class="font-semibold">{conversation.name}</p>
-									{:else}
-										<p>
-											<DisplayChatName members={conversation.members} />
-										</p>
-									{/if}
-									<p></p>
-								</div>
-							</Button>
+									<div>
+										{#if conversation.isGroup}
+											<p class="font-semibold">{conversation.name}</p>
+										{:else}
+											<p>
+												<DisplayChatName members={conversation.members} />
+											</p>
+										{/if}
+										<p></p>
+									</div>
+								</Button>
+							</a>
 						</li>
 					{/each}
 				{:else if $conversationsStore.isLoading}

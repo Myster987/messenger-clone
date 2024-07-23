@@ -41,10 +41,10 @@
 	};
 
 	const handleDelaySuggestion = () => {
+		clearTimeout(suggestDelay);
 		if (currentInput.length < 2) {
 			return;
 		}
-		clearTimeout(suggestDelay);
 		resolvedSuggestions = false;
 		searchResults = [];
 		suggestDelay = window.setTimeout(() => searchUsersByName(), 1000);
