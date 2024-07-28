@@ -1,9 +1,14 @@
+import {
+	SECRET_CLOUDINARY_API_KEY,
+	SECRET_CLOUDINARY_API_SECRET,
+	SECRET_CLOUDINARY_CLOUD_NAME
+} from '$env/static/private';
 import { v2 as cloudinary, type UploadApiErrorResponse, type UploadApiResponse } from 'cloudinary';
 
 cloudinary.config({
-	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-	api_key: process.env.CLOUDINARY_API_KEY,
-	api_secret: process.env.CLOUDINARY_API_SECRET,
+	cloud_name: SECRET_CLOUDINARY_CLOUD_NAME,
+	api_key: SECRET_CLOUDINARY_API_KEY,
+	api_secret: SECRET_CLOUDINARY_API_SECRET,
 	secure: true
 });
 

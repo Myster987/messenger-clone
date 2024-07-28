@@ -3,10 +3,9 @@ import { logger } from 'hono/logger';
 import { protect } from './utils';
 import { usersRoute, authRoute, conversationsRoute, websocketRoutes } from './routes';
 
-const api = new Hono()
+export const api = new Hono()
 	.basePath('/api')
 	.use(logger())
-
 	.use(protect)
 	.get('/', (c) => c.text('Hello World!'))
 	.route('/auth', authRoute)

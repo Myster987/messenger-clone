@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { createHonoClient } from 'backend';
+	import { io } from 'socket.io-client';
 
-	const honoClient = createHonoClient();
+	const socket = io({ path: '/api/websocket', addTrailingSlash: false });
 
-	const ws = honoClient.api.websocket.chat.$ws();
+	socket.on('eventFromServer', (message) => {
+		console.log(message);
+	});
 </script>
 
 <p>Hello</p>
