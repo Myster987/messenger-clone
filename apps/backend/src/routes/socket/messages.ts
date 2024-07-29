@@ -1,3 +1,4 @@
 import { Hono } from "hono";
+import type { HonoSocketServer } from "../../socket-helpers";
 
-export const messagesRoute = new Hono().get("/", (c) => c.text("Hello"));
+export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>();

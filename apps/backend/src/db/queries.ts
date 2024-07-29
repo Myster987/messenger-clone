@@ -97,7 +97,23 @@ export const queryConversationById = db.query.conversations
         where: eq(schema.conversations.id, sql.placeholder("conversationId")),
         with: {
             conversationImage: true,
-            members: true,
+            members: {
+                with: {
+                    user: {
+                        with: {
+                            profileImage: {
+                                columns: {
+                                    userId: true,
+                                    imageUrl: true,
+                                },
+                            },
+                        },
+                        columns: {
+                            password: false,
+                        },
+                    },
+                },
+            },
         },
     })
     .prepare();
