@@ -63,11 +63,6 @@ const io = new Server(server, {
     },
 });
 
-io.on("connect", (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
-    io.emit("hello", "Hello from server!");
-});
-
 (globalThis as ExtendedGlobal)[GlobalThisWSS] = io;
 
 export type Api = typeof api;
