@@ -10,7 +10,6 @@
     },
     "dependencies": {
         "@hono/node-server": "^1.12.0",
-        "@hono/node-ws": "^1.0.4",
         "@hono/zod-validator": "0.2.2",
         "@lucia-auth/adapter-drizzle": "^1.0.7",
         "cloudinary": "^2.3.1",
