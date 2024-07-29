@@ -1,0 +1,30 @@
+{
+    "name": "backend",
+    "type": "module",
+    "private": "true",
+    "scripts": {
+        "dev": "tsx watch --env-file=.env ./src/index.ts"
+    },
+    "exports": {
+        ".": "./src/client.ts"
+    },
+    "dependencies": {
+        "@hono/node-server": "^1.12.0",
+        "@hono/node-ws": "^1.0.4",
+        "@hono/zod-validator": "0.2.2",
+        "@lucia-auth/adapter-drizzle": "^1.0.7",
+        "cloudinary": "^2.3.1",
+        "db": "workspace:*",
+        "drizzle-orm": "0.32.1",
+        "hono": "^4.5.2",
+        "lucia": "^3.2.0",
+        "nanoid": "5.0.7",
+        "socket.io": "^4.7.5",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "@types/node": "^20.14.12",
+        "@types/ws": "^8.5.12",
+        "tsx": "^4.16.2"
+    }
+}

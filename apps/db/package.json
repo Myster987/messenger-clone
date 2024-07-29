@@ -1,0 +1,27 @@
+{
+    "name": "db",
+    "private": "true",
+    "type": "module",
+    "exports": {
+        ".": "./src/client.ts",
+        "./queries": "./src/queries.ts",
+        "./schema": "./src/schema.ts",
+        "./types": "./src/types.ts"
+    },
+    "scripts": {
+        "db:local": "turso dev -f local.db",
+        "db:generate": "drizzle-kit generate --config=./drizzle.config.ts",
+        "db:push": "drizzle-kit push --config=./drizzle.config.ts",
+        "db:studio": "drizzle-kit studio --config=./drizzle.config.ts",
+        "db:migrate": "tsx --env-file=.env ./src/migrate.ts"
+    },
+    "dependencies": {
+        "drizzle-orm": "^0.32.1",
+        "@libsql/client": "^0.7.0"
+    },
+    "devDependencies": {
+        "drizzle-kit": "^0.23.0",
+        "@types/node": "^20.14.12",
+        "tsx": "^4.16.2"
+    }
+}
