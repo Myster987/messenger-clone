@@ -17,10 +17,15 @@
 		};
 	}[];
 
+	export let isGroup: boolean = false;
+	export let groupName: string | undefined;
+
 	const secondUser = members.find((val) => val.userId != $userStore?.id);
 </script>
 
-{#if secondUser?.nick}
+{#if isGroup}
+	{groupName}
+{:else if secondUser?.nick}
 	{secondUser.nick}
 {:else}
 	{secondUser?.user.fullName}
