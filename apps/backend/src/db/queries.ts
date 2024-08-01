@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from ".";
 import * as schema from "db/schema";
 
@@ -228,4 +228,85 @@ export const checkIfConversationExists = db.query.conversations
             },
         },
     })
+    .prepare();
+
+export const insertMessageAsText = db
+    .insert(schema.messages)
+    .values({
+        id: sql.placeholder("id"),
+        senderId: sql.placeholder("senderId"),
+        body: sql.placeholder("body"),
+        imageId: null,
+    })
+    .returning()
+    .prepare();
+
+export const insertSeenMessage = db
+    .insert(schema.seenMessages)
+    .values({
+        id: sql.placeholder("id"),
+        memberId: sql.placeholder("memberId"),
+        lastSeenMessageId: sql.placeholder("lastSeenMessageId"),
+    })
+    .returning()
+    .prepare();
+
+export const updateConversationMessageAt = (
+    lastMessageAt: string,
+    conversationId: string
+) =>
+    db
+        .update(schema.conversations)
+        .set({ lastMessageAt })
+        .where(eq(schema.conversations.id, conversationId));
+
+export const queryConversationMessagesById = db
+    .select({
+        message: {
+            id: schema.messages.id,
+            createdAt: schema.messages.createdAt,
+            senderId: schema.messages.senderId,
+            body: schema.messages.body,
+            imageId: schema.messages.imageId,
+        },
+        conversationMember: {
+            id: schema.conversationMembers.id,
+            userId: schema.conversationMembers.userId,
+            nick: schema.conversationMembers.nick,
+        },
+        seenBy: sql<
+            { id: string; memberId: string; lastSeenMessageId: string }[]
+        >`(select json_array("id", "member_id", "last_seen_message_id") as "data" from (select * from "seen_messages" where "seen_messages"."last_seen_message_id" = "messages"."id")) as "seenBy"`.mapWith(
+            (val) => {
+                const data: string[] = JSON.parse(val);
+                const res: {
+                    id: string;
+                    memberId: string;
+                    lastSeenMessageId: string;
+                }[] = [];
+                for (let i = 0; i < data.length; i += 3) {
+                    res.push({
+                        id: data[i],
+                        memberId: data[i + 1],
+                        lastSeenMessageId: data[i + 2],
+                    });
+                }
+                return res;
+            }
+        ),
+    })
+    .from(schema.messages)
+    .innerJoin(
+        schema.conversationMembers,
+        eq(schema.conversationMembers.id, schema.messages.senderId)
+    )
+    .where(
+        eq(
+            schema.conversationMembers.conversationId,
+            sql.placeholder("conversationId")
+        )
+    )
+    .orderBy(desc(schema.messages.createdAt))
+    .limit(sql.placeholder("limit"))
+    .offset(sql.placeholder("offset"))
     .prepare();
