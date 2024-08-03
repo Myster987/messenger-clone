@@ -12,7 +12,14 @@ export const userStore = writable<User | null>(null);
 type Conversations = InferQueryModel<
 	'conversationMembers',
 	{
-		columns: { conversationId: false; createdAt: false; id: false; nick: false; userId: false };
+		columns: {
+			conversationId: false;
+			createdAt: false;
+			id: false;
+			nick: false;
+			userId: false;
+			lastSeenMessageId: false;
+		};
 		with: {
 			conversation: {
 				with: {

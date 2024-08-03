@@ -1,15 +1,21 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { generateId } from "../../auth/generate_id";
-import { insertMessageSchema } from "../../auth/form_schemas";
 import {
+    insertImageSchema,
+    insertMessageSchema,
+} from "../../auth/form_schemas";
+import {
+    insertImage,
+    insertMessageAsImage,
     insertMessageAsText,
-    insertSeenMessage,
     queryConversationMessagesById,
+    updateConversationMemberLastSeenMessage,
     updateConversationMessageAt,
 } from "../../db/queries";
 import { pageQueryParams } from "../../validation";
 import type { HonoSocketServer } from "../../socket-helpers";
+import { uploadImage } from "../../cloudinary";
 
 export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
     .get(
@@ -29,9 +35,16 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                     offset,
                 });
 
+                let nextPage: null | number = null;
+
+                if (data.length == limit) {
+                    nextPage = page + 1;
+                }
+
                 return c.json({
                     success: true,
                     data,
+                    nextPage,
                 });
             } catch (error) {
                 console.log(c.req.path, error);
@@ -39,6 +52,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                     {
                         success: false,
                         data: null,
+                        nextPage: null,
                     },
                     500
                 );
@@ -46,7 +60,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
         }
     )
     .post(
-        "/:conversationId",
+        "/text/:conversationId",
         zValidator("form", insertMessageSchema),
         async (c) => {
             try {
@@ -64,27 +78,86 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                     throw Error("Something went wrong when inserting message");
                 }
 
-                const insertedSeenMessage = await insertSeenMessage.get({
-                    id: generateId(),
-                    memberId: reqBody.senderId,
+                await updateConversationMemberLastSeenMessage({
                     lastSeenMessageId: insertedMessage.id,
+                    memberId: insertedMessage.senderId,
                 });
 
-                if (!insertedSeenMessage) {
-                    throw Error(
-                        "Something went wrong when inserting seen message"
-                    );
-                }
-
-                await updateConversationMessageAt(
-                    insertedMessage.createdAt,
-                    conversationId
-                );
+                await updateConversationMessageAt({
+                    lastMessageAt: insertedMessage.createdAt,
+                    conversationId,
+                });
 
                 const conversationKey = `conversation:${conversationId}:messages`;
 
                 io.emit(conversationKey, {
+                    type: "message",
                     message: reqBody.body,
+                    senderId: reqBody.senderId,
+                });
+
+                return c.json({
+                    success: true,
+                });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
+    .post(
+        "/image/:conversationId",
+        zValidator("form", insertImageSchema),
+        async (c) => {
+            try {
+                const io = c.get("io");
+                const reqBody = c.req.valid("form");
+                const { conversationId } = c.req.param();
+
+                const uploadData = await uploadImage(reqBody.image);
+
+                if (uploadData.http_code >= 400) {
+                    throw Error(
+                        "Something went wrong when uploading message image"
+                    );
+                }
+
+                const insetedImage = await insertImage.get({
+                    id: generateId(),
+                    imageUrl: uploadData.secure_url,
+                    publicId: uploadData.public_id,
+                });
+
+                const insertedMessage = await insertMessageAsImage.get({
+                    id: generateId(),
+                    senderId: reqBody.senderId,
+                    imageId: insetedImage.id,
+                });
+
+                if (!insertedMessage) {
+                    throw Error("Something went wrong when inserting message");
+                }
+
+                await updateConversationMemberLastSeenMessage({
+                    lastSeenMessageId: insertedMessage.id,
+                    memberId: insertedMessage.senderId,
+                });
+
+                await updateConversationMessageAt({
+                    lastMessageAt: insertedMessage.createdAt,
+                    conversationId,
+                });
+
+                const conversationKey = `conversation:${conversationId}:messages`;
+
+                io.emit(conversationKey, {
+                    type: "image",
+                    imageUrl: insetedImage.imageUrl,
                     senderId: reqBody.senderId,
                 });
 

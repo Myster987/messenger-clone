@@ -236,25 +236,51 @@ export const insertMessageAsText = db
         id: sql.placeholder("id"),
         senderId: sql.placeholder("senderId"),
         body: sql.placeholder("body"),
-        imageId: null,
     })
     .returning()
     .prepare();
 
-export const insertSeenMessage = db
-    .insert(schema.seenMessages)
+export const insertImage = db
+    .insert(schema.images)
     .values({
         id: sql.placeholder("id"),
-        memberId: sql.placeholder("memberId"),
-        lastSeenMessageId: sql.placeholder("lastSeenMessageId"),
+        imageUrl: sql.placeholder("imageUrl"),
+        publicId: sql.placeholder("publicId"),
     })
     .returning()
     .prepare();
 
-export const updateConversationMessageAt = (
-    lastMessageAt: string,
-    conversationId: string
-) =>
+export const insertMessageAsImage = db
+    .insert(schema.messages)
+    .values({
+        id: sql.placeholder("id"),
+        senderId: sql.placeholder("senderId"),
+        imageId: sql.placeholder("imageId"),
+    })
+    .returning()
+    .prepare();
+
+export const updateConversationMemberLastSeenMessage = ({
+    lastSeenMessageId,
+    memberId,
+}: {
+    lastSeenMessageId: string;
+    memberId: string;
+}) =>
+    db
+        .update(schema.conversationMembers)
+        .set({
+            lastSeenMessageId,
+        })
+        .where(eq(schema.conversationMembers.id, memberId));
+
+export const updateConversationMessageAt = ({
+    lastMessageAt,
+    conversationId,
+}: {
+    lastMessageAt: string;
+    conversationId: string;
+}) =>
     db
         .update(schema.conversations)
         .set({ lastMessageAt })
@@ -268,32 +294,15 @@ export const queryConversationMessagesById = db
             senderId: schema.messages.senderId,
             body: schema.messages.body,
             imageId: schema.messages.imageId,
+            imageUrl: sql<string>`(select "image_url" from "images" where "messages"."image_id" = "images"."id") as "imageUrl"`,
         },
         conversationMember: {
             id: schema.conversationMembers.id,
+            conversationId: schema.conversationMembers.conversationId,
             userId: schema.conversationMembers.userId,
             nick: schema.conversationMembers.nick,
+            lastSeenMessageId: schema.conversationMembers.lastSeenMessageId,
         },
-        seenBy: sql<
-            { id: string; memberId: string; lastSeenMessageId: string }[]
-        >`(select json_array("id", "member_id", "last_seen_message_id") as "data" from (select * from "seen_messages" where "seen_messages"."last_seen_message_id" = "messages"."id")) as "seenBy"`.mapWith(
-            (val) => {
-                const data: string[] = JSON.parse(val);
-                const res: {
-                    id: string;
-                    memberId: string;
-                    lastSeenMessageId: string;
-                }[] = [];
-                for (let i = 0; i < data.length; i += 3) {
-                    res.push({
-                        id: data[i],
-                        memberId: data[i + 1],
-                        lastSeenMessageId: data[i + 2],
-                    });
-                }
-                return res;
-            }
-        ),
     })
     .from(schema.messages)
     .innerJoin(

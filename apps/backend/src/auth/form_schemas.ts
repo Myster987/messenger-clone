@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+export const insertMessageSchema = z.object({
+    senderId: z.string().max(30).trim(),
+    body: z.string().max(10000).trim().optional(),
+});
+
+export const insertImageSchema = z.object({
+    senderId: z.string().min(1).max(30).trim(),
+    image: z
+        .instanceof(File)
+        .refine((file) => file.size > 0, "Image must have more that 0 kb"),
+});
+
 export const signUpFormSchema = z
     .object({
         fullName: z

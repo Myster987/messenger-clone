@@ -4,7 +4,14 @@ import {
     type InferInsertModel,
     type InferSelectModel,
 } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+    AnySQLiteColumn,
+    foreignKey,
+    index,
+    integer,
+    sqliteTable,
+    text,
+} from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
     id: text("id").notNull().primaryKey(),
@@ -120,6 +127,9 @@ export const conversationMembers = sqliteTable(
             .notNull()
             .references(() => users.id),
         nick: text("nick"),
+        lastSeenMessageId: text("last_seen_message_id").references(
+            (): AnySQLiteColumn => messages.id
+        ),
     },
     (table) => {
         return {
@@ -131,16 +141,22 @@ export const conversationMembers = sqliteTable(
 export const conversationMembersRelations = relations(
     conversationMembers,
     ({ many, one }) => ({
-        messages: many(messages),
+        messages: many(messages, { relationName: "messagesWrittenByUser" }),
         conversation: one(conversations, {
             fields: [conversationMembers.conversationId],
             references: [conversations.id],
+            relationName: "memberConversation",
         }),
         user: one(users, {
             fields: [conversationMembers.userId],
             references: [users.id],
+            relationName: "userProfileOfConversationMember",
         }),
-        seenMessages: many(seenMessages),
+        lastSeenMessage: one(messages, {
+            fields: [conversationMembers.lastSeenMessageId],
+            references: [messages.id],
+            relationName: "lastSeenMessageByUser",
+        }),
     })
 );
 export type SelectConversationMembers = InferSelectModel<
@@ -153,6 +169,9 @@ export type InsertConversationMembers = InferInsertModel<
 export const messages = sqliteTable("messages", {
     id: text("id").notNull().primaryKey(),
     createdAt: text("created_at")
+        .notNull()
+        .default(sql`current_timestamp`),
+    updatedAt: text("updated_at")
         .notNull()
         .default(sql`current_timestamp`),
     senderId: text("sender_id")
@@ -169,38 +188,16 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
     sender: one(conversationMembers, {
         fields: [messages.senderId],
         references: [conversationMembers.id],
+        relationName: "sendByMember",
     }),
     image: one(images, {
         fields: [messages.imageId],
         references: [images.id],
     }),
-    seenBy: many(seenMessages),
+    seenBy: many(conversationMembers, { relationName: "seenByMembers" }),
 }));
 export type SelectMessages = InferSelectModel<typeof messages>;
 export type InsertMessages = InferInsertModel<typeof messages>;
-
-export const seenMessages = sqliteTable("seen_messages", {
-    id: text("id").notNull().primaryKey(),
-    memberId: text("member_id")
-        .notNull()
-        .references(() => conversationMembers.id, { onDelete: "cascade" }),
-    lastSeenMessageId: text("last_seen_message_id")
-        .notNull()
-        .references(() => messages.id, { onDelete: "cascade" }),
-});
-
-export const seenMessagesRelations = relations(seenMessages, ({ one }) => ({
-    viewer: one(conversationMembers, {
-        fields: [seenMessages.memberId],
-        references: [conversationMembers.id],
-    }),
-    lastSeenMessage: one(messages, {
-        fields: [seenMessages.lastSeenMessageId],
-        references: [messages.id],
-    }),
-}));
-export type SelectSeenMessages = InferSelectModel<typeof seenMessages>;
-export type InsertSeenMessages = InferInsertModel<typeof seenMessages>;
 
 export const images = sqliteTable("images", {
     id: text("id").notNull().primaryKey(),

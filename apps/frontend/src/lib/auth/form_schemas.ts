@@ -1,5 +1,21 @@
 import { z } from 'zod';
 
+export const messageInputSchema = z.object({
+	senderId: z.string().min(1).max(30).trim(),
+	text: z
+		.string()
+		.min(1, 'Message is required.')
+		.max(10000, 'Your message is too long (max 10 000 characters). Please send smaller ones.')
+		.trim()
+});
+
+export const imageInputSchema = z.object({
+	senderId: z.string().min(1).max(30).trim(),
+	image: z
+		.instanceof(File, { message: 'Please select file to submit. ' })
+		.refine((file) => file.size > 0, 'Image must have more that 0 kb')
+});
+
 export const signUpFormSchema = z
 	.object({
 		fullName: z
