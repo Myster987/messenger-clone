@@ -1,16 +1,12 @@
 <script lang="ts">
-	import { PUBLIC_API_URL } from '$env/static/public';
 	import { invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import { LoaderCircle } from 'lucide-svelte';
-	import { createHonoClient } from 'backend';
-	import { fetchWithCredentials } from '@/utils';
+	import { honoClientStore} from "@/stores"
 	import { ProfileImage } from '@/components/custom/profile_image';
 	import * as Card from '@/components/ui/card';
 	import * as Command from '@/components/ui/command';
-
-	const honoClient = createHonoClient(PUBLIC_API_URL, fetchWithCredentials);
 
 	type SearchResult = {
 		id: string;
@@ -27,7 +23,7 @@
 	let suggestDelay: number;
 
 	const searchUsersByName = async () => {
-		const res = await honoClient.api.users.by_full_name[':fullName'].$get({
+		const res = await $honoClientStore.api.users.by_full_name[':fullName'].$get({
 			param: {
 				fullName: currentInput
 			}

@@ -40,4 +40,6 @@ type Conversations = InferQueryModel<
 
 export const conversationsStore = createAsyncStore<Conversations[]>();
 
+export const currentConversatinStore = writable<Conversations['conversation']>();
+
 export const honoClientStore = writable(createHonoClient(PUBLIC_API_URL, fetchWithCredentials));

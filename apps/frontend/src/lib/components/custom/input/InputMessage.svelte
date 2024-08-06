@@ -16,6 +16,10 @@
 
 	const messageForm = superForm(messageFormObject, {
 		validators: zodClient(messageInputSchema),
+		invalidateAll: false,
+		onSubmit({ formData }) {
+			formData.append('senderId', currentMemberId);
+		},
 		onUpdate({ form, result }) {
 			if (form.message) {
 				if (result.type == 'failure') {
@@ -29,7 +33,9 @@
 
 	const imageForm = superForm(imageFormObject, {
 		validators: zodClient(imageInputSchema),
+		invalidateAll: false,
 		onSubmit({ formData }) {
+			formData.append('senderId', currentMemberId);
 			formData.append('image', $imageFormData.image);
 		},
 		onUpdate({ form, result }) {
@@ -38,8 +44,9 @@
 			} else if (result.type == 'failure') {
 				toast.error(form?.message?.text);
 			} else {
-				dialogOpen = true;
+				dialogOpen = false;
 			}
+			$imageFormData.senderId = currentMemberId;
 		}
 	});
 
@@ -47,6 +54,9 @@
 
 	$messageFormData.senderId = currentMemberId;
 	$imageFormData.senderId = currentMemberId;
+
+	$: if (!$messageFormData.senderId) $messageFormData.senderId = currentMemberId;
+	$: if (!$imageFormData.senderId) $imageFormData.senderId = currentMemberId;
 
 	const image = fileProxy(imageForm, 'image');
 </script>
