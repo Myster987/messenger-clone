@@ -18,7 +18,6 @@ export const authRoute = new Hono().post(
     zValidator("form", postUserSchema, (result, c) => {
         if (!result.success) {
             console.log(result.data);
-
             return c.json(
                 {
                     success: false,
@@ -31,9 +30,6 @@ export const authRoute = new Hono().post(
     async (c) => {
         try {
             const body = c.req.valid("form");
-
-            console.log(process.cwd());
-
             const image = await readFile(
                 path.resolve(
                     process.cwd(),

@@ -13,7 +13,7 @@ import {
     updateConversationMemberLastSeenMessage,
     updateConversationMessageAt,
 } from "../../db/queries";
-import { pageQueryParams } from "../../validation";
+import { pageQueryParams, patchSeenMessage } from "../../validation";
 import type { HonoSocketServer } from "../../socket-helpers";
 import { uploadImage } from "../../cloudinary";
 
@@ -26,7 +26,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                 const { conversationId } = c.req.param();
                 const { page } = c.req.valid("query");
 
-                const limit = 10;
+                const limit = 20;
                 const offset = page * limit;
 
                 const data = await queryConversationMessagesById.all({
@@ -59,6 +59,33 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
             }
         }
     )
+    .patch(
+        "/seen_message/:conversationId",
+        zValidator("json", patchSeenMessage),
+        async (c) => {
+            try {
+                const io = c.get("io");
+                const { conversationId } = c.req.param();
+                const reqBody = c.req.valid("json");
+
+                await updateConversationMemberLastSeenMessage(reqBody);
+
+                const socketKey = `conversation:${conversationId}:seenMessage`;
+
+                io.emit(socketKey, reqBody);
+
+                return c.json({ success: true });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
     .post(
         "/text/:conversationId",
         zValidator("form", insertMessageSchema),
@@ -78,10 +105,13 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                     throw Error("Something went wrong when inserting message");
                 }
 
-                await updateConversationMemberLastSeenMessage({
-                    lastSeenMessageId: insertedMessage.id,
-                    memberId: insertedMessage.senderId,
-                });
+                const updatedMemberData =
+                    await updateConversationMemberLastSeenMessage({
+                        lastSeenMessageId: insertedMessage.id,
+                        memberId: insertedMessage.senderId,
+                    });
+
+                const memberData = updatedMemberData[0];
 
                 await updateConversationMessageAt({
                     lastMessageAt: insertedMessage.createdAt,
@@ -92,8 +122,23 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
 
                 io.emit(conversationKey, {
                     type: "message",
-                    message: reqBody.body,
-                    senderId: reqBody.senderId,
+                    body: {
+                        message: {
+                            id: insertedMessage.id,
+                            createdAt: insertedMessage.createdAt,
+                            senderId: reqBody.senderId,
+                            body: insertedMessage.body,
+                            imageId: null,
+                            imageUrl: null,
+                        },
+                        conversationMember: {
+                            id: reqBody.senderId,
+                            conversationId,
+                            userId: memberData.userId,
+                            nick: memberData.nick,
+                            lastSeenMessageId: memberData.lastSeenMessageId,
+                        },
+                    },
                 });
 
                 return c.json({
@@ -127,7 +172,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                     );
                 }
 
-                const insetedImage = await insertImage.get({
+                const insertedImage = await insertImage.get({
                     id: generateId(),
                     imageUrl: uploadData.secure_url,
                     publicId: uploadData.public_id,
@@ -136,17 +181,20 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                 const insertedMessage = await insertMessageAsImage.get({
                     id: generateId(),
                     senderId: reqBody.senderId,
-                    imageId: insetedImage.id,
+                    imageId: insertedImage.id,
                 });
 
                 if (!insertedMessage) {
                     throw Error("Something went wrong when inserting message");
                 }
 
-                await updateConversationMemberLastSeenMessage({
-                    lastSeenMessageId: insertedMessage.id,
-                    memberId: insertedMessage.senderId,
-                });
+                const updatedMemberData =
+                    await updateConversationMemberLastSeenMessage({
+                        lastSeenMessageId: insertedMessage.id,
+                        memberId: insertedMessage.senderId,
+                    });
+
+                const memberData = updatedMemberData[0];
 
                 await updateConversationMessageAt({
                     lastMessageAt: insertedMessage.createdAt,
@@ -157,8 +205,23 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
 
                 io.emit(conversationKey, {
                     type: "image",
-                    imageUrl: insetedImage.imageUrl,
-                    senderId: reqBody.senderId,
+                    body: {
+                        message: {
+                            id: insertedMessage.id,
+                            createdAt: insertedMessage.createdAt,
+                            senderId: reqBody.senderId,
+                            body: null,
+                            imageId: insertedImage.id,
+                            imageUrl: insertedImage.imageUrl,
+                        },
+                        conversationMember: {
+                            id: reqBody.senderId,
+                            conversationId,
+                            userId: memberData.userId,
+                            nick: memberData.nick,
+                            lastSeenMessageId: memberData.lastSeenMessageId,
+                        },
+                    },
                 });
 
                 return c.json({

@@ -272,7 +272,8 @@ export const updateConversationMemberLastSeenMessage = ({
         .set({
             lastSeenMessageId,
         })
-        .where(eq(schema.conversationMembers.id, memberId));
+        .where(eq(schema.conversationMembers.id, memberId))
+        .returning();
 
 export const updateConversationMessageAt = ({
     lastMessageAt,
