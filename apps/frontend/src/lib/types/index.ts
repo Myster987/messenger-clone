@@ -1,3 +1,5 @@
+import type { InferQueryModel } from 'db/types';
+
 export type Prittyfy<T> = {
 	[K in keyof T]: T[K];
 } & {};
@@ -28,3 +30,15 @@ export type SocketMessage = {
 	type: 'message' | 'image';
 	body: MessageWithMember;
 };
+
+export type MemberWithProfileImage = InferQueryModel<
+	'conversationMembers',
+	{
+		with: {
+			user: {
+				with: { profileImage: { columns: { userId: true; imageUrl: true } } };
+				columns: { isOnline: true; fullName: true };
+			};
+		};
+	}
+>;

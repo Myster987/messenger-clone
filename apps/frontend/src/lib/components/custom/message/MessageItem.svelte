@@ -20,6 +20,7 @@
 			lastSeenMessageId: string | null;
 		};
 	};
+	export let showProfileImage: boolean;
 
 	$: senderProfile = $conversationsStore.data
 		?.find((val) => val.conversation.id == data.conversationMember.conversationId)
@@ -29,34 +30,41 @@
 	$: isCurrentUser = data.conversationMember.userId == $userStore?.id;
 </script>
 
-{#if isCurrentUser}
-	<div class="flex flex-row-reverse gap-2">
-		<div class="w-4">
-			<slot />
+<div class="flex flex-col gap-1">
+	{#if isCurrentUser}
+		<div class="flex flex-row-reverse gap-2">
+			{#if isText}
+				<p class="bg-primary rounded-full px-3 py-1 font-light text-white">
+					{data.message.body}
+				</p>
+			{:else}
+				<ImageMessage imageUrl={data.message.imageUrl} />
+			{/if}
 		</div>
-		{#if isText}
-			<p class="bg-primary rounded-full px-3 py-1 font-light text-white">
-				{data.message.body}
-			</p>
-		{:else}
-			<ImageMessage imageUrl={data.message.imageUrl} />
-		{/if}
-	</div>
-{:else}
-	<div class="flex gap-2">
-		<div class="flex {isText ? 'items-center' : 'items-end'} gap-2">
-			<ProfileImage
-				imageUrl={senderProfile?.user.profileImage?.imageUrl}
-				name={senderProfile?.nick || senderProfile?.user.fullName || ''}
-				class="h-7 w-7"
-			/>
+	{:else}
+		<div class="flex gap-2">
+			<div class="flex {isText ? 'items-center' : 'items-end'}">
+				{#if showProfileImage}
+					<ProfileImage
+						imageUrl={senderProfile?.user.profileImage?.imageUrl}
+						name={senderProfile?.nick || senderProfile?.user.fullName || ''}
+						class="h-7 w-7"
+					/>
+				{:else}
+					<div class="w-7"></div>
+				{/if}
+			</div>
+			{#if isText}
+				<p class="bg-secondary rounded-full px-3 py-1 font-light">
+					{data.message.body}
+				</p>
+			{:else}
+				<ImageMessage imageUrl={data.message.imageUrl} />
+			{/if}
 		</div>
-		{#if isText}
-			<p class="bg-secondary rounded-full px-3 py-1 font-light">
-				{data.message.body}
-			</p>
-		{:else}
-			<ImageMessage imageUrl={data.message.imageUrl} />
-		{/if}
+	{/if}
+
+	<div class="flex justify-end gap-0.5">
+		<slot />
 	</div>
-{/if}
+</div>

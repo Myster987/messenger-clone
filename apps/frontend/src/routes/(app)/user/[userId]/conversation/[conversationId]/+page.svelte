@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { createInfiniteQuery } from '@tanstack/svelte-query';
 	import { ioClient } from '@/socket';
-	import { honoClientStore, userStore, currentConversatinStore } from '@/stores';
+	import { currentConversationStore, honoClientStore, userStore } from '@/stores';
 	import { DisplayConversationImage, DisplayConversationName } from '@/components/custom/other';
 	import { Badge } from '@/components/ui/badge';
 	import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,10 +15,10 @@
 	export let data: PageData;
 	const { conversationData, messageFormObject, imageFormObject } = data;
 
-	$currentConversatinStore = conversationData!;
+	$currentConversationStore = conversationData!;
 
 	const conversationId = $page.params.conversationId;
-	const currentMember = $currentConversatinStore.members.find(
+	const currentMember = $currentConversationStore.members.find(
 		(val) => val.userId == $userStore?.id
 	)!;
 
@@ -26,7 +26,7 @@
 	let isOnline: boolean;
 
 	$: isOnline =
-		$currentConversatinStore.members.some(
+		$currentConversationStore.members.some(
 			(val) => val.user.isOnline && val.userId != $userStore?.id
 		) || false;
 
@@ -62,13 +62,12 @@
 	$ioClient?.on(
 		`${conversationKey}:seenMessage`,
 		(data: { lastSeenMessageId: string; memberId: string }) => {
-			for (const member of $currentConversatinStore.members || []) {
+			$currentConversationStore.members = $currentConversationStore.members.map((member) => {
 				if (member.id == data.memberId) {
 					member.lastSeenMessageId = data.lastSeenMessageId;
-					$currentConversatinStore = $currentConversatinStore;
-					break;
 				}
-			}
+				return member;
+			});
 		}
 	);
 </script>
@@ -79,10 +78,10 @@
 			{#if conversationData}
 				<div class="relative">
 					<DisplayConversationImage
-						isGroup={$currentConversatinStore.isGroup}
-						conversationImage={$currentConversatinStore.conversationImage}
-						conversationName={$currentConversatinStore.name}
-						usersProfileImages={$currentConversatinStore.members.map(
+						isGroup={$currentConversationStore.isGroup}
+						conversationImage={$currentConversationStore.conversationImage}
+						conversationName={$currentConversationStore.name}
+						usersProfileImages={$currentConversationStore.members.map(
 							(member) => member.user.profileImage
 						)}
 						height={9}
@@ -94,9 +93,9 @@
 				</div>
 				<div>
 					<DisplayConversationName
-						members={$currentConversatinStore.members}
-						isGroup={$currentConversatinStore.isGroup}
-						groupName={$currentConversatinStore.name}
+						members={$currentConversationStore.members}
+						isGroup={$currentConversationStore.isGroup}
+						groupName={$currentConversationStore.name}
 					/>
 					<p class="text-muted-foreground text-sm font-light">
 						{#if isOnline}
@@ -116,6 +115,7 @@
 				{currentMember}
 				{messages}
 				{isIntersecting}
+				members={$currentConversationStore.members}
 				fetchMore={fetchNextPage}
 				isLoadingMore={$messagesQuery.isLoading}
 			/>
