@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { pageQueryParams, postNewConversation } from "../validation";
 import {
+    checkIfPossibleToCreateChat,
     insertConversationAsChat,
     insertConversationMember,
     queryConversationById,
@@ -9,9 +10,6 @@ import {
     queryUserConversations,
 } from "../db/queries";
 import { generateId } from "../auth/generate_id";
-import { inArray } from "drizzle-orm";
-import { db } from "../db";
-import * as schema from "db/schema";
 
 export const conversationsRoute = new Hono()
     .get("/by_id/:conversationId", async (c) => {
@@ -81,18 +79,9 @@ export const conversationsRoute = new Hono()
         try {
             const body = c.req.valid("json");
 
-            const exists = await db.query.conversations.findFirst({
-                with: {
-                    members: {
-                        where: inArray(schema.conversationMembers.userId, [
-                            body.firstUserId,
-                            body.secondUserId,
-                        ]),
-                    },
-                },
-            });
+            const exists = await checkIfPossibleToCreateChat.all(body);
 
-            if (exists) {
+            if (exists.length != 0) {
                 return c.json(
                     {
                         success: false,

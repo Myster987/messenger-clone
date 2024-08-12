@@ -1,4 +1,4 @@
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from ".";
 import * as schema from "db/schema";
 
@@ -6,6 +6,23 @@ export const checkIfUserExists = db
     .select()
     .from(schema.users)
     .where(eq(schema.users.email, sql.placeholder("email")))
+    .prepare();
+
+export const checkIfPossibleToCreateChat = db
+    .select()
+    .from(schema.conversationMembers)
+    .where(
+        and(
+            eq(
+                schema.conversationMembers.userId,
+                sql.placeholder("firstUserId")
+            ),
+            eq(
+                schema.conversationMembers.userId,
+                sql.placeholder("secondUserId")
+            )
+        )
+    )
     .prepare();
 
 export const insertUser = db
