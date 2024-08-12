@@ -20,7 +20,7 @@
 	const updateSeenMessages = async (messages: MessageWithMember[]) => {
 		const newestMessage = messages[0];
 
-		if (newestMessage.conversationMember.lastSeenMessageId != currentMember.lastSeenMessageId) {
+		if (newestMessage.conversationMember.lastSeenMessageId != currentMember?.lastSeenMessageId) {
 			$honoClientStore.api.socket.messages.seen_message[':conversationId'].$patch({
 				param: {
 					conversationId: currentMember.conversationId

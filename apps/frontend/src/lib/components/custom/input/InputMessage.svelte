@@ -1,18 +1,18 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
 	import { fileProxy, superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { imageInputSchema, messageInputSchema } from '@/auth/form_schemas';
 	import { ImageUp, SendHorizontal } from 'lucide-svelte';
-	import { Input } from '@/components/ui/input';
 	import { Button } from '@/components/ui/button';
 	import * as Form from '@/components/ui/form';
 	import * as Dialog from '@/components/ui/dialog';
-	import { toast } from 'svelte-sonner';
 
 	export let messageFormObject: SuperValidated<Infer<typeof messageInputSchema>>;
 	export let imageFormObject: SuperValidated<Infer<typeof imageInputSchema>>;
 	export let currentMemberId: string;
 	let dialogOpen = false;
+	let inputElement: HTMLElement;
 
 	const messageForm = superForm(messageFormObject, {
 		validators: zodClient(messageInputSchema),
@@ -26,10 +26,11 @@
 					toast.error(form.message?.text);
 				}
 			}
+			setTimeout(() => inputElement.focus(), 100);
 		}
 	});
 
-	const { form: messageFormData, enhance: messageEnhance } = messageForm;
+	$: ({ form: messageFormData, enhance: messageEnhance } = messageForm);
 
 	const imageForm = superForm(imageFormObject, {
 		validators: zodClient(imageInputSchema),
@@ -50,15 +51,15 @@
 		}
 	});
 
-	const { form: imageFormData, enhance: imageEnhance, submit: imageFormSubmit } = imageForm;
+	$: ({ form: imageFormData, enhance: imageEnhance, submit: imageFormSubmit } = imageForm);
 
-	$messageFormData.senderId = currentMemberId;
-	$imageFormData.senderId = currentMemberId;
+	$: if ($messageFormData) $messageFormData.senderId = currentMemberId;
+	$: if ($imageFormData) $imageFormData.senderId = currentMemberId;
 
 	$: if (!$messageFormData.senderId) $messageFormData.senderId = currentMemberId;
 	$: if (!$imageFormData.senderId) $imageFormData.senderId = currentMemberId;
 
-	const image = fileProxy(imageForm, 'image');
+	$: image = fileProxy(imageForm, 'image');
 </script>
 
 <div class="flex w-full flex-nowrap gap-1">
@@ -135,12 +136,13 @@
 
 		<Form.Field form={messageForm} name="text" class="flex w-full items-center">
 			<Form.Control let:attrs>
-				<Input
+				<input
 					{...attrs}
 					bind:value={$messageFormData.text}
+					bind:this={inputElement}
 					autocomplete="off"
 					placeholder="Aa"
-					class="bg-secondary h-9 w-full rounded-full"
+					class="border-input bg-secondary ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-full border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 				/>
 			</Form.Control>
 		</Form.Field>

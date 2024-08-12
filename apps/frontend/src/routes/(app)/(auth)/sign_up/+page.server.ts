@@ -1,10 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import { hash } from '@node-rs/argon2';
 import { signUpFormSchema } from '@/auth/form_schemas';
 import { createUserSession } from '@/auth/handlers';
 import type { Actions, PageServerLoad } from './$types';
-import { hash } from '@node-rs/argon2';
 
 export const load: PageServerLoad = async () => {
 	return {
@@ -21,7 +21,6 @@ export const actions: Actions = {
 			});
 		}
 		const formData = form.data;
-		console.log(formData);
 
 		const hashedPassword = await hash(formData.password);
 
@@ -32,7 +31,6 @@ export const actions: Actions = {
 				fullName: formData.fullName
 			}
 		});
-		console.log(res);
 
 		const { userId } = await res.json();
 

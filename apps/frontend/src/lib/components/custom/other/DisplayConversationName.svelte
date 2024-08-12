@@ -20,7 +20,7 @@
 	export let isGroup: boolean = false;
 	export let groupName: string | undefined;
 
-	const secondUser = members.find((val) => val.userId != $userStore?.id);
+	$: secondUser = members.find((val) => val.userId != $userStore?.id);
 </script>
 
 {#if isGroup}

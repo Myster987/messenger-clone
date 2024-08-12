@@ -18,10 +18,20 @@ export const load: PageServerLoad = async ({
 		return data;
 	};
 
+	const fetchMessages = async (page = '0') => {
+		const res = await honoClient.api.socket.messages[':conversationId'].$get({
+			param: { conversationId: conversationId },
+			query: { page }
+		});
+		const { data, nextPage } = await res.json();
+		return { messages: data || [], nextPage };
+	};
+
 	return {
 		conversationData: await fetchConversationData(),
 		messageFormObject: await superValidate(zod(messageInputSchema)),
-		imageFormObject: await superValidate(zod(imageInputSchema))
+		imageFormObject: await superValidate(zod(imageInputSchema)),
+		messagesData: await fetchMessages()
 	};
 };
 
