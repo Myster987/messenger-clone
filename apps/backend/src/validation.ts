@@ -39,3 +39,7 @@ export const patchSeenMessage = z.object({
     memberId: z.string().min(1).max(20).trim(),
     lastSeenMessageId: z.string().min(1).max(20).trim(),
 });
+
+export const patchIsOnline = z.object({
+    online: z.enum(["true", "false"]),
+});

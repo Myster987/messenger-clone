@@ -6,12 +6,13 @@ import {
     insertConversationAsChat,
     insertConversationMember,
     queryConversationById,
-    queryUserById,
+    queryUserByIdWithProfileImageWithoutPassword,
     queryUserConversations,
 } from "../db/queries";
 import { generateId } from "../auth/generate_id";
+import type { HonoSocketServer } from "../socket-helpers";
 
-export const conversationsRoute = new Hono()
+export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
     .get("/by_id/:conversationId", async (c) => {
         try {
             const { conversationId } = c.req.param();
@@ -78,7 +79,7 @@ export const conversationsRoute = new Hono()
     .post("/chat", zValidator("json", postNewConversation), async (c) => {
         try {
             const body = c.req.valid("json");
-
+            const io = c.get("io");
             const exists = await checkIfPossibleToCreateChat.all(body);
 
             if (exists.length != 0) {
@@ -101,7 +102,9 @@ export const conversationsRoute = new Hono()
 
             const usersData = await Promise.all(
                 Object.values(body).map((val) =>
-                    queryUserById.get({ userId: val })
+                    queryUserByIdWithProfileImageWithoutPassword.get({
+                        userId: val,
+                    })
                 )
             );
 
@@ -118,6 +121,35 @@ export const conversationsRoute = new Hono()
             if (membersInsertion.length == 0) {
                 throw Error("Something went wrong when inserting conversation");
             }
+
+            const eventKeys = membersInsertion.map(
+                (m) => `user:${m.userId}:newConversation`
+            );
+
+            eventKeys.forEach((eventKey) => {
+                io.emit(eventKey, {
+                    conversation: {
+                        ...conversationInsertion,
+                        members: membersInsertion.map((m) => {
+                            const user = usersData.find(
+                                (u) => u?.id == m.userId
+                            );
+                            return {
+                                ...m,
+                                user: {
+                                    fullName: user?.fullName,
+                                    isOnline: user?.isOnline,
+                                    profileImage: {
+                                        userId: user?.id,
+                                        imageUrl: user?.profileImage?.imageUrl,
+                                    },
+                                },
+                            };
+                        }),
+                        conversationImage: null,
+                    },
+                });
+            });
 
             return c.json({
                 success: true,

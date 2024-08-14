@@ -1,14 +1,47 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { customQueryParams } from "../validation";
+import { customQueryParams, patchIsOnline } from "../validation";
 import { apiEditUserSchema } from "../auth/form_schemas";
 import { deleteImagesFromCloudinary, uploadImage } from "../cloudinary";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { queryUserByIdWithProfileImage, queryUsersByName } from "../db/queries";
+import {
+    queryUserByIdWithProfileImage,
+    queryUsersByName,
+    updateUserStatusToOnlineById,
+    updateUserStatusToOfflineById,
+} from "../db/queries";
 import * as schema from "db/schema";
 
 export const usersRoute = new Hono()
+    .patch(
+        "/is_online/:userId",
+        zValidator("query", patchIsOnline),
+        async (c) => {
+            try {
+                const { userId } = c.req.param();
+                const { online } = c.req.valid("query");
+
+                if (online == "true") {
+                    await updateUserStatusToOnlineById.get({ userId });
+                } else if (online == "false") {
+                    await updateUserStatusToOfflineById.get({ userId });
+                }
+
+                return c.json({
+                    success: true,
+                });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
     .patch(
         ":userId",
         zValidator("form", apiEditUserSchema, (result, c) => {

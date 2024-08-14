@@ -13,9 +13,9 @@ import {
     updateConversationMemberLastSeenMessage,
     updateConversationMessageAt,
 } from "../../db/queries";
+import { uploadImage } from "../../cloudinary";
 import { pageQueryParams, patchSeenMessage } from "../../validation";
 import type { HonoSocketServer } from "../../socket-helpers";
-import { uploadImage } from "../../cloudinary";
 
 export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
     .get(
@@ -26,7 +26,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                 const { conversationId } = c.req.param();
                 const { page } = c.req.valid("query");
 
-                const limit = 20;
+                const limit = 25;
                 const offset = page * limit;
 
                 const data = await queryConversationMessagesById.all({
