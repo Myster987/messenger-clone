@@ -38,6 +38,7 @@
 		onSubmit({ formData }) {
 			formData.append('senderId', currentMemberId);
 			formData.append('image', $imageFormData.image);
+			toast.loading('Please wait. It can take a while...');
 		},
 		onUpdate({ form, result }) {
 			if (!form.valid && !form?.message?.text) {
@@ -46,6 +47,7 @@
 				toast.error(form?.message?.text);
 			} else {
 				dialogOpen = false;
+				toast.success('Image uploaded.');
 			}
 			$imageFormData.senderId = currentMemberId;
 		}

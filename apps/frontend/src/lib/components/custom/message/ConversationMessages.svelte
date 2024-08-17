@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { LoaderCircle } from 'lucide-svelte';
 	import { honoClientStore, userStore } from '@/stores';
 	import { ProfileImage } from '../profile_image';
@@ -11,26 +12,21 @@
 
 	let element: HTMLElement;
 	let firstElement: HTMLElement;
-	let isIntersectingFirstElement: boolean;
 	export let currentMember: Member;
 	export let isIntersecting: boolean;
 	export let isLoadingMore: boolean = false;
 	export let fetchMore: () => void;
 
 	const updateSeenMessages = async (messages: MessageWithMember[]) => {
-		const newestMessage = messages[0];
-
-		if (newestMessage.conversationMember.lastSeenMessageId != currentMember?.lastSeenMessageId) {
-			$honoClientStore.api.socket.messages.seen_message[':conversationId'].$patch({
-				param: {
-					conversationId: currentMember.conversationId
-				},
-				json: {
-					memberId: currentMember.id,
-					lastSeenMessageId: newestMessage.message.id
-				}
-			});
-		}
+		$honoClientStore.api.socket.messages.seen_message[':conversationId'].$patch({
+			param: {
+				conversationId: currentMember.conversationId
+			},
+			json: {
+				memberId: currentMember.id,
+				lastSeenMessageId: messages[0].message.id
+			}
+		});
 	};
 
 	let messagesSeenByMembers = new Map<string, string[]>();
@@ -56,28 +52,40 @@
 		});
 	};
 
+	let mounted = false;
+
 	$: if (isIntersecting) fetchMore();
-	$: if (isIntersectingFirstElement) updateSeenMessages(messages);
-	$: if (firstElement) {
+	$: if (mounted) {
+		const newestMessage = messages[0];
+
+		if (newestMessage.message.id != currentMember.lastSeenMessageId) {
+			updateSeenMessages(messages);
+			firstElement.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+		}
+	}
+	$: if (firstElement && mounted) {
 		firstElement.scrollIntoView(false);
 	}
 	$: updateSeenByMembers(messages, members);
+
+	onMount(() => {
+		mounted = true;
+	});
 </script>
 
 <ul class="flex h-full flex-1 flex-col-reverse px-5">
 	{#each messages as message, i (message.message.id)}
 		{#if i == 0}
-			<IntersectionObserver element={firstElement} bind:intersecting={isIntersectingFirstElement}>
-				<li
-					class={messages[i + 1]?.conversationMember.id != message.conversationMember.id
-						? 'pt-3'
-						: ''}
+			<li
+				class={messages[i + 1]?.conversationMember.id != message.conversationMember.id
+					? 'pt-3'
+					: ''}
+			>
+				<MessageItem
+					data={message}
+					showProfileImage={messages[i - 1]?.conversationMember.id != message.conversationMember.id}
 				>
-					<MessageItem
-						data={message}
-						showProfileImage={messages[i + 1]?.conversationMember.id !=
-							message.conversationMember.id}
-					>
+					<div class="flex justify-end gap-0.5" bind:this={firstElement}>
 						{#if messagesSeenByMembers.has(message.message.id)}
 							{#each messagesSeenByMembers.get(message.message.id) || [] as seenBy}
 								<ProfileImage
@@ -87,10 +95,9 @@
 								/>
 							{/each}
 						{/if}
-					</MessageItem>
-					<div bind:this={firstElement}></div>
-				</li>
-			</IntersectionObserver>
+					</div>
+				</MessageItem>
+			</li>
 		{:else}
 			<li
 				class={messages[i + 1]?.conversationMember.id != message.conversationMember.id
@@ -101,15 +108,17 @@
 					data={message}
 					showProfileImage={messages[i - 1]?.conversationMember.id != message.conversationMember.id}
 				>
-					{#if messagesSeenByMembers.has(message.message.id)}
-						{#each messagesSeenByMembers.get(message.message.id) || [] as seenBy}
-							<ProfileImage
-								imageUrl={seenBy}
-								name={`user that seen message with id: ${message.message.id}`}
-								class="h-3 w-3"
-							/>
-						{/each}
-					{/if}
+					<div class="flex justify-end gap-0.5">
+						{#if messagesSeenByMembers.has(message.message.id)}
+							{#each messagesSeenByMembers.get(message.message.id) || [] as seenBy}
+								<ProfileImage
+									imageUrl={seenBy}
+									name={`user that seen message with id: ${message.message.id}`}
+									class="h-3 w-3"
+								/>
+							{/each}
+						{/if}
+					</div>
 				</MessageItem>
 			</li>
 		{/if}

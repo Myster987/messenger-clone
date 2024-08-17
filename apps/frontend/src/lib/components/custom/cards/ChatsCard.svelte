@@ -8,18 +8,45 @@
 	import { DisplayConversationName, DisplayConversationImage } from '../other';
 	import * as Card from '@/components/ui/card';
 	import * as Command from '@/components/ui/command';
+	import * as Tooltip from '@/components/ui/tooltip';
+	import type { StoreConversation } from '@/types';
 
 	let inputValue = '';
+
+	let conversations: StoreConversation[];
+
+	$: conversations = $conversationsStore.data || [];
+	$: conversations =
+		$conversationsStore.data?.filter(
+			(val) =>
+				val.conversation.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+				val.conversation.members.some(
+					(el) =>
+						el.userId != $userStore?.id &&
+						(el.nick?.toLowerCase().includes(inputValue.toLowerCase()) ||
+							el.user.fullName.toLowerCase().includes(inputValue.toLowerCase()))
+				)
+		) || [];
 </script>
 
 <Card.Root class="flex w-[360px] flex-col">
 	<Card.Header class="flex flex-col gap-1 p-4 pb-0">
 		<div class="flex justify-between">
 			<h1 class="flex items-center text-2xl font-semibold">Chats</h1>
-			<a href="/user/{$userStore?.id}/new_chat"
-				><Button variant="secondary" size="icon" class="rounded-full pl-1"><UserRoundPlus /></Button
-				></a
-			>
+			<div class="flex gap-2">
+				<a href="/user/{$userStore?.id}/new_chat">
+					<Tooltip.Root>
+						<Tooltip.Trigger asChild let:builder>
+							<Button builders={[builder]} variant="secondary" size="icon" class="rounded-full"
+								><UserRoundPlus class="ml-1" /></Button
+							>
+						</Tooltip.Trigger>
+						<Tooltip.Content>
+							<p>New chat</p>
+						</Tooltip.Content>
+					</Tooltip.Root>
+				</a>
+			</div>
 		</div>
 		<Command.Root class="bg-secondary rounded-full px-1 ">
 			<Command.Input
@@ -33,7 +60,7 @@
 		<ScrollArea class="h-full">
 			<ul class="mr-4 grid gap-1">
 				{#if $conversationsStore.data}
-					{#each $conversationsStore.data as { conversation } (conversation.id)}
+					{#each conversations as { conversation } (conversation.id)}
 						<li class="w-full">
 							<a href="/user/{$userStore?.id}/conversation/{conversation.id}">
 								<Button variant="ghost" class="flex h-16 w-full justify-start gap-2 p-2">

@@ -1,11 +1,21 @@
 import { z } from 'zod';
 
+export const createGroupSchema = z.object({
+	groupName: z
+		.string()
+		.min(1, 'Group name is required')
+		.max(255, 'Max lenght is 255 characters')
+		.trim(),
+	creatorId: z.string().min(1).max(20).trim(),
+	userIds: z.array(z.string().min(1).max(20).trim()).min(1, 'Please select at least one member')
+});
+
 export const messageInputSchema = z.object({
 	senderId: z.string().min(1).max(30).trim(),
 	text: z
 		.string()
 		.min(1, 'Message is required.')
-		.max(10000, 'Your message is too long (max 10 000 characters). Please send smaller ones.')
+		.max(10000, 'Your message is too long (max 10 000 characters). Please send smaller ones')
 		.trim()
 });
 

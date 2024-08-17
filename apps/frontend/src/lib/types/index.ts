@@ -4,6 +4,8 @@ export type Prittyfy<T> = {
 	[K in keyof T]: T[K];
 } & {};
 
+export type User = Omit<InferQueryModel<'users', { with: { profileImage: true } }>, 'password'>;
+
 export type Member = {
 	id: string;
 	conversationId: string;
@@ -38,6 +40,35 @@ export type MemberWithProfileImage = InferQueryModel<
 			user: {
 				with: { profileImage: { columns: { userId: true; imageUrl: true } } };
 				columns: { isOnline: true; fullName: true };
+			};
+		};
+	}
+>;
+
+export type StoreConversation = InferQueryModel<
+	'conversationMembers',
+	{
+		columns: {
+			conversationId: false;
+			createdAt: false;
+			id: false;
+			nick: false;
+			userId: false;
+			lastSeenMessageId: false;
+		};
+		with: {
+			conversation: {
+				with: {
+					conversationImage: true;
+					members: {
+						with: {
+							user: {
+								with: { profileImage: { columns: { userId: true; imageUrl: true } } };
+								columns: { isOnline: true; fullName: true };
+							};
+						};
+					};
+				};
 			};
 		};
 	}

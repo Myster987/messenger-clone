@@ -34,16 +34,20 @@
 			{#if !expanded}
 				<Tooltip.Root>
 					<Tooltip.Trigger asChild let:builder>
-						<Button builders={[builder]} variant="ghost" size="icon"><UsersRound /></Button>
+						<a href="/user/{$userStore?.id}/new_group"
+							><Button builders={[builder]} variant="ghost" size="icon"><UsersRound /></Button></a
+						>
 					</Tooltip.Trigger>
 					<Tooltip.Content>
-						<p>Users</p>
+						<p>New group</p>
 					</Tooltip.Content>
 				</Tooltip.Root>
 			{:else}
-				<Button variant="ghost" class="flex w-full justify-start gap-3 p-2 text-lg"
-					><UsersRound /> Users</Button
-				>
+				<a href="/user/{$userStore?.id}/new_group">
+					<Button variant="ghost" class="flex w-full justify-start gap-3 p-2 text-lg"
+						><UsersRound /> New group</Button
+					>
+				</a>
 			{/if}
 		</div>
 		<div>

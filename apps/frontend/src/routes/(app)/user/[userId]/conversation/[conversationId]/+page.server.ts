@@ -1,3 +1,4 @@
+import { fail } from '@sveltejs/kit';
 import { message, superValidate, withFiles } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { imageInputSchema, messageInputSchema } from '@/auth/form_schemas';
@@ -88,5 +89,27 @@ export const actions: Actions = {
 		}
 
 		return withFiles({ form, success: true });
+	},
+	deleteMessage: async ({ request, params: { conversationId }, locals: { honoClient } }) => {
+		const formData = Object.fromEntries(await request.formData()) as unknown as {
+			messageId: string;
+		};
+
+		const res = await honoClient.api.socket.messages[':conversationId'][':messageId'].$delete({
+			param: {
+				conversationId,
+				messageId: formData.messageId
+			}
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { success });
+		}
+
+		return {
+			success
+		};
 	}
 };
