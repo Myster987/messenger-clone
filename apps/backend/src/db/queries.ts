@@ -247,6 +247,15 @@ export const checkIfConversationExists = db.query.conversations
     })
     .prepare();
 
+export const queryMessageByIdWithImage = db.query.messages
+    .findFirst({
+        where: eq(schema.messages.id, sql.placeholder("messageId")),
+        with: {
+            image: true,
+        },
+    })
+    .prepare();
+
 export const insertMessageAsText = db
     .insert(schema.messages)
     .values({
@@ -274,6 +283,22 @@ export const insertMessageAsImage = db
         senderId: sql.placeholder("senderId"),
         imageId: sql.placeholder("imageId"),
     })
+    .returning()
+    .prepare();
+
+export const setEmptyMessage = db
+    .update(schema.messages)
+    .set({
+        body: null,
+        imageId: null,
+    })
+    .where(eq(schema.messages.id, sql.placeholder("messageId")))
+    .returning()
+    .prepare();
+
+export const deleteImage = db
+    .delete(schema.images)
+    .where(eq(schema.images.id, sql.placeholder("imageId")))
     .returning()
     .prepare();
 

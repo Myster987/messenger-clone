@@ -6,14 +6,17 @@ import {
     insertMessageSchema,
 } from "../../auth/form_schemas";
 import {
+    deleteImage,
     insertImage,
     insertMessageAsImage,
     insertMessageAsText,
     queryConversationMessagesById,
+    queryMessageByIdWithImage,
+    setEmptyMessage,
     updateConversationMemberLastSeenMessage,
     updateConversationMessageAt,
 } from "../../db/queries";
-import { uploadImage } from "../../cloudinary";
+import { deleteImagesFromCloudinary, uploadImage } from "../../cloudinary";
 import { pageQueryParams, patchSeenMessage } from "../../validation";
 import type { HonoSocketServer } from "../../socket-helpers";
 
@@ -237,4 +240,70 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                 );
             }
         }
-    );
+    )
+    .delete("/:conversationId/:messageId", async (c) => {
+        try {
+            const { conversationId, messageId } = c.req.param();
+            const io = c.get("io");
+
+            const checkIfMessageExists = await queryMessageByIdWithImage.get({
+                messageId,
+            });
+
+            if (!checkIfMessageExists) {
+                return c.json({ success: false }, 400);
+            }
+
+            const deleteMessageImage = async (
+                imageId: string,
+                publicId: string
+            ) => {
+                const deletedFromCloudinary = await deleteImagesFromCloudinary([
+                    publicId,
+                ]);
+
+                if (!deletedFromCloudinary) {
+                    throw Error(
+                        "Something went wrong when deleting image from cloudinary"
+                    );
+                }
+
+                const imageDeleted = await deleteImage.get({ imageId });
+
+                if (!imageDeleted) {
+                    throw Error(
+                        "Something went wrong when deleting image from database"
+                    );
+                }
+            };
+
+            if (checkIfMessageExists.image) {
+                await deleteMessageImage(
+                    checkIfMessageExists.image.id,
+                    checkIfMessageExists.image.publicId
+                );
+            }
+
+            const deletedMessage = await setEmptyMessage.get({ messageId });
+
+            if (!deletedMessage) {
+                throw Error("Something went wrong whem deleting messege");
+            }
+
+            const eventKey = `conversation:${conversationId}:deletedMessages`;
+
+            io.emit(eventKey, { messageId });
+
+            return c.json({
+                success: true,
+            });
+        } catch (error) {
+            console.log(c.req.path, error);
+            return c.json(
+                {
+                    success: false,
+                },
+                500
+            );
+        }
+    });

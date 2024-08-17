@@ -23,9 +23,9 @@ export const usersRoute = new Hono()
                 const { online } = c.req.valid("query");
 
                 if (online == "true") {
-                    await updateUserStatusToOnlineById.get({ userId });
+                    await updateUserStatusToOnlineById.run({ userId });
                 } else if (online == "false") {
-                    await updateUserStatusToOfflineById.get({ userId });
+                    await updateUserStatusToOfflineById.run({ userId });
                 }
 
                 return c.json({

@@ -78,3 +78,15 @@ export const apiEditUserSchema = z.object({
         .or(z.string())
         .optional(),
 });
+
+export const createGroupSchema = z.object({
+    groupName: z
+        .string()
+        .min(1, "Group name is required")
+        .max(255, "Max lenght is 255 characters")
+        .trim(),
+    creatorId: z.string().min(1).max(20).trim(),
+    userIds: z
+        .array(z.string().min(1).max(20).trim())
+        .min(1, "Please select at least one member"),
+});
