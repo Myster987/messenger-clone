@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { HTMLInputAttributes } from 'svelte/elements';
-	import type { InputEvents } from './index.js';
 	import { cn } from '$lib/utils.js';
+	import type { InputEvents } from './index.js';
+	import type { HTMLInputAttributes } from 'svelte/elements';
 
-	type $$Props = HTMLInputAttributes & { thisElement: HTMLInputElement };
+	type $$Props = HTMLInputAttributes;
 	type $$Events = InputEvents;
 
 	let className: $$Props['class'] = undefined;
