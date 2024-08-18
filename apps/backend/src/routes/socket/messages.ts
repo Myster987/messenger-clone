@@ -11,13 +11,17 @@ import {
     insertMessageAsImage,
     insertMessageAsText,
     queryConversationMessagesById,
-    queryMessageByIdWithImage,
+    queryMessageByIdWithImageAndSender,
     setEmptyMessage,
     updateConversationMemberLastSeenMessage,
     updateConversationMessageAt,
 } from "../../db/queries";
 import { deleteImagesFromCloudinary, uploadImage } from "../../cloudinary";
-import { pageQueryParams, patchSeenMessage } from "../../validation";
+import {
+    deleteMessageById,
+    pageQueryParams,
+    patchSeenMessage,
+} from "../../validation";
 import type { HonoSocketServer } from "../../socket-helpers";
 
 export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
@@ -241,17 +245,23 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
             }
         }
     )
-    .delete("/:conversationId/:messageId", async (c) => {
+    .delete("/:messageId", zValidator("json", deleteMessageById), async (c) => {
         try {
-            const { conversationId, messageId } = c.req.param();
+            const { messageId } = c.req.param();
+            const { senderId } = c.req.valid("json");
             const io = c.get("io");
 
-            const checkIfMessageExists = await queryMessageByIdWithImage.get({
-                messageId,
-            });
+            const checkIfMessageExists =
+                await queryMessageByIdWithImageAndSender.get({
+                    messageId,
+                });
 
             if (!checkIfMessageExists) {
                 return c.json({ success: false }, 400);
+            }
+
+            if (checkIfMessageExists.senderId != senderId) {
+                return c.json({ success: false }, 401);
             }
 
             const deleteMessageImage = async (
@@ -290,7 +300,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                 throw Error("Something went wrong whem deleting messege");
             }
 
-            const eventKey = `conversation:${conversationId}:deletedMessages`;
+            const eventKey = `conversation:${checkIfMessageExists.sender.conversationId}:deletedMessages`;
 
             io.emit(eventKey, { messageId });
 

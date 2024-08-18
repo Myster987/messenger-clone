@@ -83,6 +83,7 @@
 											}}
 										>
 											<input type="text" name="messageId" value={data.message.id} hidden />
+											<input type="text" name="senderId" value={senderProfile?.id} hidden />
 											<Button variant="destructive" type="submit">Delete</Button>
 										</form>
 									</AlertDialog.Action>

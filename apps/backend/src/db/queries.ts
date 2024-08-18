@@ -247,11 +247,12 @@ export const checkIfConversationExists = db.query.conversations
     })
     .prepare();
 
-export const queryMessageByIdWithImage = db.query.messages
+export const queryMessageByIdWithImageAndSender = db.query.messages
     .findFirst({
         where: eq(schema.messages.id, sql.placeholder("messageId")),
         with: {
             image: true,
+            sender: true,
         },
     })
     .prepare();

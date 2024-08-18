@@ -93,12 +93,15 @@ export const actions: Actions = {
 	deleteMessage: async ({ request, params: { conversationId }, locals: { honoClient } }) => {
 		const formData = Object.fromEntries(await request.formData()) as unknown as {
 			messageId: string;
+			senderId: string;
 		};
 
-		const res = await honoClient.api.socket.messages[':conversationId'][':messageId'].$delete({
+		const res = await honoClient.api.socket.messages[':messageId'].$delete({
 			param: {
-				conversationId,
 				messageId: formData.messageId
+			},
+			json: {
+				senderId: formData.senderId
 			}
 		});
 
