@@ -56,15 +56,15 @@
 
 	$: if (isIntersecting) fetchMore();
 	$: if (mounted) {
-		const newestMessage = messages[0];
+		const newestMessage = messages.at(0);
 
-		if (newestMessage.message.id != currentMember.lastSeenMessageId) {
+		if (newestMessage?.message.id != currentMember.lastSeenMessageId) {
 			updateSeenMessages(messages);
-			firstElement.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+			firstElement?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
 		}
 	}
 	$: if (firstElement && mounted) {
-		firstElement.scrollIntoView(false);
+		firstElement?.scrollIntoView(false);
 	}
 	$: updateSeenByMembers(messages, members);
 

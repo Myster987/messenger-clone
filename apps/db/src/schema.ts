@@ -179,7 +179,7 @@ export const messages = sqliteTable("messages", {
         .references(() => conversationMembers.id),
     body: text("body"),
     imageId: text("image_id").references(() => images.id, {
-        onUpdate: "cascade",
+        onDelete: "set null",
     }),
 });
 
