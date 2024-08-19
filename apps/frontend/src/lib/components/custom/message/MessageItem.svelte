@@ -3,10 +3,12 @@
 	import { conversationsStore, userStore } from '@/stores';
 	import { EllipsisVertical, FilePenLine, Trash2 } from 'lucide-svelte';
 	import { ProfileImage } from '../profile_image';
-	import { Button } from '@/components/ui/button';
+	import { cn } from '@/utils';
+	import { Button, buttonVariants } from '@/components/ui/button';
+	import { Input } from '@/components/ui/input';
 	import * as Popover from '@/components/ui/popover';
 	import * as AlertDialog from '@/components/ui/alert-dialog';
-
+	import * as Dialog from '@/components/ui/dialog';
 	import ImageMessage from './ImageMessage.svelte';
 	import type { MessageWithMember } from '@/types';
 
@@ -17,11 +19,14 @@
 		?.find((val) => val.conversation.id == data.conversationMember.conversationId)
 		?.conversation.members.find((member) => member.id == data.conversationMember.id);
 
+	$: edited = data.message.createdAt != data.message.updatedAt;
+
 	$: isDeleted = !data.message.body && !data.message.imageId;
 	$: isText = data.message.body ? true : false;
 	$: isCurrentUser = data.conversationMember.userId == $userStore?.id;
 
 	let popoverOpened = false;
+	let editMessageDialogOpen = false;
 </script>
 
 <div class="group flex flex-col gap-1">
@@ -40,6 +45,10 @@
 					<ImageMessage imageUrl={data.message.imageUrl} />
 				{/if}
 
+				{#if edited}
+					<p class="text-muted-foreground text-sm">Edited</p>
+				{/if}
+
 				<Popover.Root portal={null} bind:open={popoverOpened}>
 					<Popover.Trigger asChild let:builder>
 						<Button
@@ -50,9 +59,54 @@
 						>
 					</Popover.Trigger>
 					<Popover.Content class="w-fit gap-1 p-1">
-						<Button variant="ghost" class="flex w-full justify-start gap-1"
-							><FilePenLine /> Edit message</Button
-						>
+						<Dialog.Root bind:open={editMessageDialogOpen}>
+							<Dialog.Trigger asChild let:builder>
+								<Button builders={[builder]} variant="ghost" class="flex w-full justify-start gap-1"
+									><FilePenLine /> Edit message</Button
+								>
+							</Dialog.Trigger>
+
+							<Dialog.Content>
+								<Dialog.Header>
+									<Dialog.Title class="text-2xl">Edit message</Dialog.Title>
+									<Dialog.Description
+										>Make changes to message here. Click save when you're done.</Dialog.Description
+									>
+								</Dialog.Header>
+
+								<div>
+									{#if isText}
+										<form
+											action="/user/{$userStore?.id}/conversation/{data.conversationMember
+												.conversationId}?/editTextMessage"
+											method="post"
+											use:enhance={() => {
+												return async () => {};
+											}}
+										>
+											<input type="text" name="messageId" value={data.message.id} hidden />
+											<input type="text" name="senderId" value={senderProfile?.id} hidden />
+
+											<Input name="newBody" value={data.message.body} required />
+
+											<div class="flex justify-end gap-2 pt-5">
+												<Dialog.Close class={cn(buttonVariants({ variant: 'outline' }), 'w-[90px]')}
+													>Cancel</Dialog.Close
+												>
+												<Button
+													type="submit"
+													on:click={() => {
+														editMessageDialogOpen = false;
+														popoverOpened = false;
+													}}
+													class="w-[90px]">Save</Button
+												>
+											</div>
+										</form>
+									{/if}
+								</div>
+							</Dialog.Content>
+						</Dialog.Root>
 
 						<AlertDialog.Root>
 							<AlertDialog.Trigger asChild let:builder>

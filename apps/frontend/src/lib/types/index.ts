@@ -17,6 +17,7 @@ export type Member = {
 export type Message = {
 	id: string;
 	createdAt: string;
+	updatedAt: string;
 	imageUrl: string;
 	senderId: string;
 	body: string | null;

@@ -90,3 +90,8 @@ export const createGroupSchema = z.object({
         .array(z.string().min(1).max(20).trim())
         .min(1, "Please select at least one member"),
 });
+
+export const editTextMessage = z.object({
+    senderId: z.string().min(1).max(20).trim(),
+    newBody: z.string().min(1).max(10000).trim(),
+});

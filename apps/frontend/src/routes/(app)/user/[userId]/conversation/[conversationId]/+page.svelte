@@ -88,6 +88,30 @@
 			}
 		});
 	});
+
+	$: attachEvent(
+		$ioClient,
+		`${conversationKey}:editedMessages`,
+		(data: {
+			messageId: string;
+			newBody: string | null;
+			imageId: string | null;
+			imageUrl: string | null;
+			updatedAt: string;
+		}) => {
+			messages.data = messages.data.map((m) => {
+				if (m.message.id != data.messageId) {
+					return m;
+				} else {
+					m.message.updatedAt = data.updatedAt;
+					m.message.body = data.newBody;
+					m.message.imageId = data.imageId;
+					m.message.imageUrl = data.imageUrl!;
+					return m;
+				}
+			});
+		}
+	);
 </script>
 
 <div class="flex gap-4">

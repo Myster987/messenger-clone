@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { generateId } from "../../auth/generate_id";
 import {
+    editTextMessage,
     insertImageSchema,
     insertMessageSchema,
 } from "../../auth/form_schemas";
@@ -15,6 +16,7 @@ import {
     setEmptyMessage,
     updateConversationMemberLastSeenMessage,
     updateConversationMessageAt,
+    updateTextMessage,
 } from "../../db/queries";
 import { deleteImagesFromCloudinary, uploadImage } from "../../cloudinary";
 import {
@@ -133,6 +135,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                         message: {
                             id: insertedMessage.id,
                             createdAt: insertedMessage.createdAt,
+                            updatedAt: insertedMessage.updatedAt,
                             senderId: reqBody.senderId,
                             body: insertedMessage.body,
                             imageId: null,
@@ -229,6 +232,61 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                             lastSeenMessageId: memberData.lastSeenMessageId,
                         },
                     },
+                });
+
+                return c.json({
+                    success: true,
+                });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
+    .patch(
+        "/text/:messageId",
+        zValidator("json", editTextMessage),
+        async (c) => {
+            try {
+                const { messageId } = c.req.param();
+                const { senderId, newBody } = c.req.valid("json");
+                const io = c.get("io");
+
+                const checkIfMessageExists =
+                    await queryMessageByIdWithImageAndSender.get({
+                        messageId,
+                    });
+
+                if (!checkIfMessageExists) {
+                    return c.json({ success: false }, 400);
+                }
+
+                if (checkIfMessageExists.senderId != senderId) {
+                    return c.json({ success: false }, 401);
+                }
+
+                const updatedMessage = await updateTextMessage({
+                    messageId,
+                    body: newBody,
+                });
+
+                if (!updatedMessage) {
+                    throw Error("Something went wrong when updating message");
+                }
+
+                const eventKey = `conversation:${checkIfMessageExists.sender.conversationId}:editedMessages`;
+
+                io.emit(eventKey, {
+                    messageId,
+                    newBody,
+                    imageId: null,
+                    imageUrl: null,
+                    updatedAt: updatedMessage.updatedAt,
                 });
 
                 return c.json({

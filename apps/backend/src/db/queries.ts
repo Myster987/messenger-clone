@@ -303,6 +303,20 @@ export const deleteImage = db
     .returning()
     .prepare();
 
+export const updateTextMessage = ({
+    body,
+    messageId,
+}: {
+    body: string;
+    messageId: string;
+}) =>
+    db
+        .update(schema.messages)
+        .set({ body, updatedAt: sql`current_timestamp` })
+        .where(eq(schema.messages.id, messageId))
+        .returning()
+        .get();
+
 export const updateConversationMemberLastSeenMessage = ({
     lastSeenMessageId,
     memberId,
@@ -335,6 +349,7 @@ export const queryConversationMessagesById = db
         message: {
             id: schema.messages.id,
             createdAt: schema.messages.createdAt,
+            updatedAt: schema.messages.updatedAt,
             senderId: schema.messages.senderId,
             body: schema.messages.body,
             imageId: schema.messages.imageId,

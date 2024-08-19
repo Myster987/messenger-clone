@@ -114,5 +114,32 @@ export const actions: Actions = {
 		return {
 			success
 		};
+	},
+	editTextMessage: async ({ request, locals: { honoClient } }) => {
+		const formData = Object.fromEntries(await request.formData()) as unknown as {
+			messageId: string;
+			senderId: string;
+			newBody: string;
+		};
+
+		const res = await honoClient.api.socket.messages.text[':messageId'].$patch({
+			param: {
+				messageId: formData.messageId
+			},
+			json: {
+				senderId: formData.senderId,
+				newBody: formData.newBody
+			}
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { success });
+		}
+
+		return {
+			success
+		};
 	}
 };
