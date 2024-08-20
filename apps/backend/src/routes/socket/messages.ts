@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { generateId } from "../../auth/generate_id";
 import {
+    editImageMessage,
     editTextMessage,
     insertImageSchema,
     insertMessageSchema,
@@ -16,6 +17,7 @@ import {
     setEmptyMessage,
     updateConversationMemberLastSeenMessage,
     updateConversationMessageAt,
+    updateImageMessage,
     updateTextMessage,
 } from "../../db/queries";
 import { deleteImagesFromCloudinary, uploadImage } from "../../cloudinary";
@@ -219,6 +221,7 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                         message: {
                             id: insertedMessage.id,
                             createdAt: insertedMessage.createdAt,
+                            updatedAt: insertedMessage.updatedAt,
                             senderId: reqBody.senderId,
                             body: null,
                             imageId: insertedImage.id,
@@ -284,7 +287,6 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                 io.emit(eventKey, {
                     messageId,
                     newBody,
-                    imageId: null,
                     imageUrl: null,
                     updatedAt: updatedMessage.updatedAt,
                 });
@@ -292,6 +294,68 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                 return c.json({
                     success: true,
                 });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
+    .patch(
+        "/image/:messageId",
+        zValidator("form", editImageMessage),
+        async (c) => {
+            try {
+                const { messageId } = c.req.param();
+                const { senderId, newImage } = c.req.valid("form");
+                const io = c.get("io");
+
+                const checkIfMessageExists =
+                    await queryMessageByIdWithImageAndSender.get({
+                        messageId,
+                    });
+
+                if (!checkIfMessageExists) {
+                    return c.json({ success: false }, 400);
+                }
+
+                if (checkIfMessageExists.senderId != senderId) {
+                    return c.json({ success: false }, 401);
+                }
+
+                const deletedFromCloudinary = await deleteImagesFromCloudinary([
+                    checkIfMessageExists.image?.publicId!,
+                ]);
+
+                if (!deletedFromCloudinary) {
+                    throw Error(
+                        "Something went wrong when deleting image from cloudinary"
+                    );
+                }
+
+                const uploadData = await uploadImage(newImage);
+
+                const updatedMessage = await updateImageMessage({
+                    messageId,
+                    imageId: checkIfMessageExists.imageId!,
+                    imageUrl: uploadData.secure_url,
+                    publicId: uploadData.public_id,
+                });
+
+                const eventKey = `conversation:${checkIfMessageExists.sender.conversationId}:editedMessages`;
+
+                io.emit(eventKey, {
+                    messageId,
+                    newBody: null,
+                    imageUrl: uploadData.secure_url,
+                    updatedAt: updatedMessage[0].updatedAt,
+                });
+
+                return c.json({ success: true });
             } catch (error) {
                 console.log(c.req.path, error);
                 return c.json(

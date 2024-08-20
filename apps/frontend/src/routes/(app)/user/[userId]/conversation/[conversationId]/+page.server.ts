@@ -141,5 +141,36 @@ export const actions: Actions = {
 		return {
 			success
 		};
+	},
+	editImageMessage: async ({ request, locals: { honoClient } }) => {
+		const formData = Object.fromEntries(await request.formData()) as unknown as {
+			messageId: string;
+			senderId: string;
+			newImage: File;
+		};
+
+		if (formData.newImage.size == 0) {
+			return fail(400, { success: false });
+		}
+
+		const res = await honoClient.api.socket.messages.image[':messageId'].$patch({
+			param: {
+				messageId: formData.messageId
+			},
+			form: {
+				senderId: formData.senderId,
+				newImage: formData.newImage
+			}
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { success });
+		}
+
+		return {
+			success
+		};
 	}
 };

@@ -43,7 +43,12 @@
 				<Form.Field {form} name="groupName">
 					<Form.Control let:attrs>
 						<Form.Label class="text-xl">Group name</Form.Label>
-						<Input {...attrs} bind:value={$formData.groupName} placeholder="Enter group name..." />
+						<Input
+							{...attrs}
+							bind:value={$formData.groupName}
+							autocomplete="off"
+							placeholder="Enter group name..."
+						/>
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>

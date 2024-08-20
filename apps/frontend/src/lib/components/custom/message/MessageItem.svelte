@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { browser } from '$app/environment';
+	import { toast } from 'svelte-sonner';
 	import { conversationsStore, userStore } from '@/stores';
 	import { EllipsisVertical, FilePenLine, Trash2 } from 'lucide-svelte';
 	import { ProfileImage } from '../profile_image';
@@ -27,6 +29,8 @@
 
 	let popoverOpened = false;
 	let editMessageDialogOpen = false;
+
+	let newImage: File | null = null;
 </script>
 
 <div class="group flex flex-col gap-1">
@@ -59,7 +63,14 @@
 						>
 					</Popover.Trigger>
 					<Popover.Content class="w-fit gap-1 p-1">
-						<Dialog.Root bind:open={editMessageDialogOpen}>
+						<Dialog.Root
+							bind:open={editMessageDialogOpen}
+							onOpenChange={(open) => {
+								if (!open) {
+									newImage = null;
+								}
+							}}
+						>
 							<Dialog.Trigger asChild let:builder>
 								<Button builders={[builder]} variant="ghost" class="flex w-full justify-start gap-1"
 									><FilePenLine /> Edit message</Button
@@ -87,9 +98,66 @@
 											<input type="text" name="messageId" value={data.message.id} hidden />
 											<input type="text" name="senderId" value={senderProfile?.id} hidden />
 
-											<Input name="newBody" value={data.message.body} required />
+											<Input name="newBody" value={data.message.body} autocomplete="off" required />
 
-											<div class="flex justify-end gap-2 pt-5">
+											<div class="flex justify-between gap-2 pt-5">
+												<Dialog.Close class={cn(buttonVariants({ variant: 'outline' }), 'w-[90px]')}
+													>Cancel</Dialog.Close
+												>
+												<Button
+													type="submit"
+													on:click={() => {
+														editMessageDialogOpen = false;
+														popoverOpened = false;
+													}}
+													class="w-[90px]">Save</Button
+												>
+											</div>
+										</form>
+									{:else}
+										<form
+											action="/user/{$userStore?.id}/conversation/{data.conversationMember
+												.conversationId}?/editImageMessage"
+											method="post"
+											enctype="multipart/form-data"
+											use:enhance={() => {
+												toast.loading('Please wait. This will take a while...');
+												return async () => {};
+											}}
+										>
+											<input type="text" name="messageId" value={data.message.id} hidden />
+											<input type="text" name="senderId" value={senderProfile?.id} hidden />
+
+											<div class="h-60 overflow-hidden">
+												{#if browser}
+													<!-- it's fine -->
+													<img
+														src={newImage ? URL.createObjectURL(newImage) : data.message.imageUrl}
+														alt="Preview"
+														on:load={(e) => URL.revokeObjectURL(e.target?.src)}
+														class="rounded-md object-cover"
+													/>
+												{/if}
+											</div>
+
+											<input
+												type="file"
+												accept="image/*"
+												id="image-upload-input"
+												name="newImage"
+												on:input={(e) => (newImage = e.currentTarget.files?.item(0))}
+												hidden
+											/>
+
+											<Button
+												variant="secondary"
+												on:click={() => {
+													document.getElementById('image-upload-input')?.click();
+												}}
+												class="mt-3 w-full">Upload new image</Button
+											>
+
+											<div class="flex justify-between gap-2 pt-3">
 												<Dialog.Close class={cn(buttonVariants({ variant: 'outline' }), 'w-[90px]')}
 													>Cancel</Dialog.Close
 												>

@@ -303,6 +303,13 @@ export const deleteImage = db
     .returning()
     .prepare();
 
+export const updateMessageUpdatedAtToNow = db
+    .update(schema.messages)
+    .set({ updatedAt: sql`current_timestamp` })
+    .where(eq(schema.messages.id, sql.placeholder("messageId")))
+    .returning()
+    .prepare();
+
 export const updateTextMessage = ({
     body,
     messageId,
@@ -316,6 +323,27 @@ export const updateTextMessage = ({
         .where(eq(schema.messages.id, messageId))
         .returning()
         .get();
+
+export const updateImageMessage = ({
+    messageId,
+    imageId,
+    publicId,
+    imageUrl,
+}: {
+    messageId: string;
+    imageId: string;
+    publicId: string;
+    imageUrl: string;
+}) =>
+    Promise.all([
+        updateMessageUpdatedAtToNow.get({ messageId }),
+        db
+            .update(schema.images)
+            .set({ imageUrl, publicId })
+            .where(eq(schema.images.id, imageId))
+            .returning()
+            .get(),
+    ]);
 
 export const updateConversationMemberLastSeenMessage = ({
     lastSeenMessageId,

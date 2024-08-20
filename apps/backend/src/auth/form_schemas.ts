@@ -95,3 +95,10 @@ export const editTextMessage = z.object({
     senderId: z.string().min(1).max(20).trim(),
     newBody: z.string().min(1).max(10000).trim(),
 });
+
+export const editImageMessage = z.object({
+    senderId: z.string().min(1).max(20).trim(),
+    newImage: z
+        .instanceof(File)
+        .refine((file) => file.size > 0, "Image must have more that 0 kb"),
+});

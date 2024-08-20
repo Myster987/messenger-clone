@@ -95,7 +95,6 @@
 		(data: {
 			messageId: string;
 			newBody: string | null;
-			imageId: string | null;
 			imageUrl: string | null;
 			updatedAt: string;
 		}) => {
@@ -105,7 +104,6 @@
 				} else {
 					m.message.updatedAt = data.updatedAt;
 					m.message.body = data.newBody;
-					m.message.imageId = data.imageId;
 					m.message.imageUrl = data.imageUrl!;
 					return m;
 				}
