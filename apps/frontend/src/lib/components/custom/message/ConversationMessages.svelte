@@ -3,9 +3,11 @@
 	import { LoaderCircle } from 'lucide-svelte';
 	import { honoClientStore, userStore } from '@/stores';
 	import { ProfileImage } from '../profile_image';
+	import { DisplayConversationImage, DisplayConversationName } from '../other';
 	import IntersectionObserver from 'svelte-intersection-observer';
 	import MessageItem from './MessageItem.svelte';
 	import type { Member, MemberWithProfileImage, MessageWithMember } from '@/types';
+	import type { SelectConversationImages } from 'db/schema';
 
 	export let messages: MessageWithMember[];
 	export let members: MemberWithProfileImage[];
@@ -13,8 +15,12 @@
 	let element: HTMLElement;
 	let firstElement: HTMLElement;
 	export let currentMember: Member;
+	export let conversationName: string;
+	export let conversationImage: SelectConversationImages | null;
 	export let isIntersecting: boolean;
 	export let isLoadingMore: boolean = false;
+	export let isGroup: boolean;
+	export let hasNextPage: boolean;
 	export let fetchMore: () => void;
 
 	const updateSeenMessages = async (messages: MessageWithMember[]) => {
@@ -130,4 +136,44 @@
 			{/if}
 		</div>
 	</IntersectionObserver>
+	{#if !hasNextPage}
+		<div class="flex flex-col items-center gap-1 p-3">
+			{#if isGroup}
+				<div class="h-[66px] w-[66px]">
+					<DisplayConversationImage
+						{isGroup}
+						{conversationImage}
+						{conversationName}
+						usersProfileImages={members.map((member) => member.user.profileImage)}
+						width={14}
+						height={14}
+					/>
+				</div>
+			{:else}
+				<div class="h-24 w-24">
+					<DisplayConversationImage
+						{isGroup}
+						{conversationImage}
+						{conversationName}
+						usersProfileImages={members.map((member) => member.user.profileImage)}
+						width={15}
+						height={15}
+					/>
+				</div>
+			{/if}
+
+			<h2 class="text-2xl">
+				<DisplayConversationName members={members || []} {isGroup} groupName={conversationName} />
+			</h2>
+
+			<p class="text-muted-foreground">
+				{#if isGroup}
+					Welcome to conversation
+				{:else}
+					Welcome to chat with
+				{/if}
+				<DisplayConversationName members={members || []} {isGroup} groupName={conversationName} />
+			</p>
+		</div>
+	{/if}
 </ul>

@@ -230,15 +230,21 @@
 				{/if}
 			</div>
 			{#if isDeleted}
-				<p class="text-muted-foreground rounded-full px-3 py-1 font-light">
+				<p class="text-muted-foreground rounded-full border px-3 py-1 font-light">
 					This message has been deleted.
 				</p>
-			{:else if isText}
-				<p class="bg-secondary rounded-full px-3 py-1 font-light">
-					{data.message.body}
-				</p>
 			{:else}
-				<ImageMessage imageUrl={data.message.imageUrl} />
+				{#if isText}
+					<p class="bg-secondary rounded-full px-3 py-1 font-light">
+						{data.message.body}
+					</p>
+				{:else}
+					<ImageMessage imageUrl={data.message.imageUrl} />
+				{/if}
+
+				{#if edited}
+					<p class="text-muted-foreground self-center text-sm">Edited</p>
+				{/if}
 			{/if}
 		</div>
 	{/if}

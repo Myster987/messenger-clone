@@ -32,8 +32,7 @@
 		conversationData?.members.some((val) => val.user.isOnline && val.userId != $userStore?.id) ||
 		false;
 
-	$: nextPage = messagesData.nextPage;
-	$: messages = { data: messagesData.messages, isLoading: false };
+	$: messages = { data: messagesData.messages, isLoading: false, nextPage: messagesData.nextPage };
 
 	const fetchMessages = async (page = '0') => {
 		messages.isLoading = true;
@@ -46,13 +45,16 @@
 			}
 		});
 		const { data: resData, nextPage: nextApiPage } = await res.json();
-		nextPage = nextApiPage;
-		messages = { data: [...messages.data, ...(resData || [])], isLoading: false };
+		messages = {
+			data: [...messages.data, ...(resData || [])],
+			isLoading: false,
+			nextPage: nextApiPage
+		};
 	};
 
 	const fetchNextPage = () => {
-		if (nextPage) {
-			fetchMessages(String(nextPage));
+		if (messages.nextPage) {
+			fetchMessages(String(messages.nextPage));
 		}
 	};
 
@@ -177,10 +179,14 @@
 				<ConversationMessages
 					{currentMember}
 					messages={messages.data}
+					conversationName={conversationData?.name || ''}
+					conversationImage={conversationData?.conversationImage || null}
 					{isIntersecting}
 					members={conversationData?.members || []}
 					fetchMore={fetchNextPage}
 					isLoadingMore={messages.isLoading}
+					isGroup={conversationData?.isGroup || false}
+					hasNextPage={messages.nextPage ? true : false}
 				/>
 			</ScrollArea>
 		</Card.Content>
