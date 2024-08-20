@@ -102,3 +102,8 @@ export const editImageMessage = z.object({
         .instanceof(File)
         .refine((file) => file.size > 0, "Image must have more that 0 kb"),
 });
+
+export const editMemberNick = z.object({
+    conversationId: z.string().min(1).max(20).trim(),
+    newNick: z.string().min(1).max(128).trim(),
+});

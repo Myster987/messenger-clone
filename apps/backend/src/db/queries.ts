@@ -224,6 +224,22 @@ export const insertConversationMember = db
     .returning()
     .prepare();
 
+export const updateConversationMemberNick = ({
+    memberId,
+    newNick,
+}: {
+    memberId: string;
+    newNick: string;
+}) =>
+    db
+        .update(schema.conversationMembers)
+        .set({
+            nick: newNick,
+        })
+        .where(eq(schema.conversationMembers.id, memberId))
+        .returning()
+        .get();
+
 export const insertConversationImage = db
     .insert(schema.conversationImages)
     .values({
