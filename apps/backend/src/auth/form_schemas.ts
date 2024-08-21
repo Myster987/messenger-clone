@@ -107,3 +107,13 @@ export const editMemberNick = z.object({
     conversationId: z.string().min(1).max(20).trim(),
     newNick: z.string().min(1).max(128).trim(),
 });
+
+export const editConversationName = z.object({
+    conversationName: z.string().min(1).max(255).trim(),
+});
+
+export const editConversationImage = z.object({
+    conversationImage: z
+        .instanceof(File, { message: "Image is required" })
+        .refine((file) => file.size > 0, "Image should have more than 0 kb"),
+});

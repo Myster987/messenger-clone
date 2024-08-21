@@ -10,7 +10,8 @@ export const badgeVariants = tv({
 			destructive:
 				'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
 			outline: 'text-foreground',
-			online: 'bg-green-500 rounded-full h-4 w-4 p-0 border-[3px]	border-background'
+			online: 'bg-green-500 rounded-full h-4 w-4 p-0 border-[3px]	border-background',
+			notification: 'bg-blue-400 rounded-full h-4 w-4 p-0'
 		}
 	},
 	defaultVariants: {

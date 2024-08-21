@@ -16,7 +16,7 @@ import {
     queryMessageByIdWithImageAndSender,
     setEmptyMessage,
     updateConversationMemberLastSeenMessage,
-    updateConversationMessageAt,
+    updateConversationLatestMessage,
     updateImageMessage,
     updateTextMessage,
 } from "../../db/queries";
@@ -124,10 +124,10 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
 
                 const memberData = updatedMemberData[0];
 
-                await updateConversationMessageAt({
-                    lastMessageAt: insertedMessage.createdAt,
+                await updateConversationLatestMessage(
                     conversationId,
-                });
+                    insertedMessage.id
+                );
 
                 const conversationKey = `conversation:${conversationId}:messages`;
 
@@ -208,10 +208,10 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
 
                 const memberData = updatedMemberData[0];
 
-                await updateConversationMessageAt({
-                    lastMessageAt: insertedMessage.createdAt,
+                await updateConversationLatestMessage(
                     conversationId,
-                });
+                    insertedMessage.id
+                );
 
                 const conversationKey = `conversation:${conversationId}:messages`;
 

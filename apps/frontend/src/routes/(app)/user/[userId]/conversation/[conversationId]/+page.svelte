@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+	import { writable } from 'svelte/store';
 	import { attachEvent, ioClient } from '@/socket';
 	import { userStore, honoClientStore, conversationsStore } from '@/stores';
 	import { Ellipsis } from 'lucide-svelte';
@@ -33,10 +34,14 @@
 		conversationData?.members.some((val) => val.user.isOnline && val.userId != $userStore?.id) ||
 		false;
 
-	$: messages = { data: messagesData.messages, isLoading: false, nextPage: messagesData.nextPage };
+	$: messages = writable({
+		data: messagesData.messages,
+		isLoading: false,
+		nextPage: messagesData.nextPage
+	});
 
 	const fetchMessages = async (page = '0') => {
-		messages.isLoading = true;
+		$messages.isLoading = true;
 		const res = await $honoClientStore.api.socket.messages[':conversationId'].$get({
 			param: {
 				conversationId
@@ -46,27 +51,33 @@
 			}
 		});
 		const { data: resData, nextPage: nextApiPage } = await res.json();
-		messages = {
-			data: [...messages.data, ...(resData || [])],
+		$messages = {
+			data: [...$messages.data, ...(resData || [])],
 			isLoading: false,
 			nextPage: nextApiPage
 		};
 	};
 
 	const fetchNextPage = () => {
-		if (messages.nextPage) {
-			fetchMessages(String(messages.nextPage));
+		if ($messages.nextPage) {
+			fetchMessages(String($messages.nextPage));
 		}
 	};
 
 	$: conversationKey = `conversation:${conversationId}`;
 
-	$: attachEvent($ioClient, `${conversationKey}:messages`, (data: SocketMessage) => {
-		messages.data = [data.body, ...messages.data];
-	});
+	$: attachEvent(
+		$ioClient,
+		`${conversationKey}:messages`,
+		`${conversationKey}:addNewMessageToArray`,
+		(data: SocketMessage) => {
+			$messages.data = [data.body, ...$messages.data];
+		}
+	);
 
 	$: attachEvent(
 		$ioClient,
+		`${conversationKey}:seenMessage`,
 		`${conversationKey}:seenMessage`,
 		(data: { lastSeenMessageId: string; memberId: string }) => {
 			if (conversationData) {
@@ -80,20 +91,26 @@
 		}
 	);
 
-	$: attachEvent($ioClient, `${conversationKey}:deletedMessages`, (data: { messageId: string }) => {
-		messages.data = messages.data.map((m) => {
-			if (m.message.id != data.messageId) {
-				return m;
-			} else {
-				m.message.body = null;
-				m.message.imageId = null;
-				return m;
-			}
-		});
-	});
+	$: attachEvent(
+		$ioClient,
+		`${conversationKey}:deletedMessages`,
+		`${conversationKey}:deletedMessages`,
+		(data: { messageId: string }) => {
+			$messages.data = $messages.data.map((m) => {
+				if (m.message.id != data.messageId) {
+					return m;
+				} else {
+					m.message.body = null;
+					m.message.imageId = null;
+					return m;
+				}
+			});
+		}
+	);
 
 	$: attachEvent(
 		$ioClient,
+		`${conversationKey}:editedMessages`,
 		`${conversationKey}:editedMessages`,
 		(data: {
 			messageId: string;
@@ -101,7 +118,7 @@
 			imageUrl: string | null;
 			updatedAt: string;
 		}) => {
-			messages.data = messages.data.map((m) => {
+			$messages.data = $messages.data.map((m) => {
 				if (m.message.id != data.messageId) {
 					return m;
 				} else {
@@ -116,6 +133,7 @@
 
 	$: attachEvent(
 		$ioClient,
+		`${conversationKey}:nicks`,
 		`${conversationKey}:nicks`,
 		(data: { memberId: string; newNick: string }) => {
 			if (conversationData) {
@@ -211,15 +229,15 @@
 			<ScrollArea class="h-[calc(100vh-146px)]">
 				<ConversationMessages
 					{currentMember}
-					messages={messages.data}
+					{messages}
 					conversationName={conversationData?.name || ''}
 					conversationImage={conversationData?.conversationImage || null}
 					{isIntersecting}
 					members={conversationData?.members || []}
 					fetchMore={fetchNextPage}
-					isLoadingMore={messages.isLoading}
+					isLoadingMore={$messages.isLoading}
 					isGroup={conversationData?.isGroup || false}
-					hasNextPage={messages.nextPage ? true : false}
+					hasNextPage={$messages.nextPage ? true : false}
 				/>
 			</ScrollArea>
 		</Card.Content>

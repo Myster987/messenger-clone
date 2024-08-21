@@ -143,6 +143,7 @@ export const queryUserConversations = db.query.conversationMembers
             conversation: {
                 with: {
                     conversationImage: true,
+                    latestMessage: true,
                     members: {
                         with: {
                             user: {
@@ -214,6 +215,28 @@ export const insertConversationAsGroup = db
     .returning()
     .prepare();
 
+export const updateConversation = (
+    conversationId: string,
+    newData: Partial<{ name: string; conversationImageId: string }>
+) =>
+    db
+        .update(schema.conversations)
+        .set(newData)
+        .where(eq(schema.conversations.id, conversationId))
+        .returning()
+        .get();
+
+export const updateConversationLatestMessage = (
+    conversationId: string,
+    messageId: string
+) =>
+    db
+        .update(schema.conversations)
+        .set({ latestMessageId: messageId })
+        .where(eq(schema.conversations.id, conversationId))
+        .returning()
+        .get();
+
 export const insertConversationMember = db
     .insert(schema.conversationMembers)
     .values({
@@ -240,6 +263,13 @@ export const updateConversationMemberNick = ({
         .returning()
         .get();
 
+export const queryConversationWithImage = db.query.conversations
+    .findFirst({
+        where: eq(schema.conversations.id, sql.placeholder("conversationId")),
+        with: { conversationImage: true },
+    })
+    .prepare();
+
 export const insertConversationImage = db
     .insert(schema.conversationImages)
     .values({
@@ -249,6 +279,25 @@ export const insertConversationImage = db
     })
     .returning()
     .prepare();
+
+export const updateConversationImage = ({
+    imageId,
+    imageUrl,
+    publicId,
+}: {
+    imageId: string;
+    imageUrl: string;
+    publicId: string;
+}) =>
+    db
+        .update(schema.conversationImages)
+        .set({
+            imageUrl,
+            publicId,
+        })
+        .where(eq(schema.conversationImages.id, imageId))
+        .returning()
+        .get();
 
 export const checkIfConversationExists = db.query.conversations
     .findFirst({
@@ -375,18 +424,6 @@ export const updateConversationMemberLastSeenMessage = ({
         })
         .where(eq(schema.conversationMembers.id, memberId))
         .returning();
-
-export const updateConversationMessageAt = ({
-    lastMessageAt,
-    conversationId,
-}: {
-    lastMessageAt: string;
-    conversationId: string;
-}) =>
-    db
-        .update(schema.conversations)
-        .set({ lastMessageAt })
-        .where(eq(schema.conversations.id, conversationId));
 
 export const queryConversationMessagesById = db
     .select({

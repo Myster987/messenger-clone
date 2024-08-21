@@ -1,14 +1,17 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import type { Socket } from 'socket.io-client';
 
 export const ioClient = writable<Socket | undefined>();
 
+const callbacksStore = writable(new Set<string>());
+
 export const attachEvent = (
 	socket: Socket | undefined,
 	eventName: string,
+	key: string,
 	callback: (...args: any[]) => void
 ) => {
-	const existingListeners = socket?.listeners(eventName) || [];
-	if (existingListeners.length > 0) return;
+	if (get(callbacksStore).has(key)) return;
+	callbacksStore.update((c) => c.add(key));
 	socket?.on(eventName, callback);
 };

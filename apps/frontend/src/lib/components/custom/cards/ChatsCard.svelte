@@ -5,7 +5,11 @@
 	import { Skeleton } from '@/components/ui/skeleton';
 	import { ScrollArea } from '@/components/ui/scroll-area';
 	import { Badge } from '@/components/ui/badge';
-	import { DisplayConversationName, DisplayConversationImage } from '../other';
+	import {
+		DisplayConversationName,
+		DisplayConversationImage,
+		DisplayLatestMessage
+	} from '../other';
 	import * as Card from '@/components/ui/card';
 	import * as Command from '@/components/ui/command';
 	import * as Tooltip from '@/components/ui/tooltip';
@@ -77,21 +81,22 @@
 									</div>
 
 									<div>
-										<p class="font-semibold">
+										<p class="text-left font-semibold">
 											<DisplayConversationName
 												members={conversation.members}
 												isGroup={conversation.isGroup}
 												groupName={conversation.name}
 											/>
 										</p>
-										<p class="text-muted-foreground text-left text-sm font-light">
-											{#if conversation.members.some((val) => val.user.isOnline && val.userId != $userStore?.id)}
-												Online
-											{:else}
-												Offline
-											{/if}
-										</p>
+										<DisplayLatestMessage
+											latestMessage={conversation.latestMessage}
+											members={conversation.members}
+										/>
 									</div>
+									<!-- {#if conversation.}
+										
+									<Badge variant="notification" class="ml-auto" />
+									{/if} -->
 								</Button>
 							</a>
 						</li>

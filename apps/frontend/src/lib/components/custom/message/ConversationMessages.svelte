@@ -8,8 +8,13 @@
 	import MessageItem from './MessageItem.svelte';
 	import type { Member, MemberWithProfileImage, MessageWithMember } from '@/types';
 	import type { SelectConversationImages } from 'db/schema';
+	import type { Writable } from 'svelte/store';
 
-	export let messages: MessageWithMember[];
+	export let messages: Writable<{
+		data: MessageWithMember[];
+		isLoading: boolean;
+		nextPage: number | null;
+	}>;
 	export let members: MemberWithProfileImage[];
 
 	let element: HTMLElement;
@@ -23,14 +28,14 @@
 	export let hasNextPage: boolean;
 	export let fetchMore: () => void;
 
-	const updateSeenMessages = async (messages: MessageWithMember[]) => {
+	const updateSeenMessages = async (newestMessage: MessageWithMember) => {
 		$honoClientStore.api.socket.messages.seen_message[':conversationId'].$patch({
 			param: {
 				conversationId: currentMember.conversationId
 			},
 			json: {
 				memberId: currentMember.id,
-				lastSeenMessageId: messages[0].message.id
+				lastSeenMessageId: newestMessage.message.id
 			}
 		});
 	};
@@ -58,40 +63,44 @@
 		});
 	};
 
-	let mounted = false;
+	let canFetch = false;
 
-	$: if (isIntersecting) fetchMore();
-	$: if (mounted) {
-		const newestMessage = messages.at(0);
+	$: if (isIntersecting && canFetch) fetchMore();
+	$: {
+		const newestMessage = $messages.data.at(0);
 
-		if (newestMessage?.message.id != currentMember.lastSeenMessageId) {
-			updateSeenMessages(messages);
-			firstElement?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+		if (newestMessage && newestMessage?.message.id != currentMember.lastSeenMessageId) {
+			updateSeenMessages(newestMessage);
+			firstElement?.scrollIntoView(false);
 		}
 	}
-	$: if (firstElement && mounted) {
-		firstElement?.scrollIntoView(false);
+	$: if (firstElement) {
+		setTimeout(
+			() => firstElement?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' }),
+			100
+		);
 	}
-	$: updateSeenByMembers(messages, members);
+	$: updateSeenByMembers($messages.data, members);
 
 	onMount(() => {
-		mounted = true;
+		setTimeout(() => (canFetch = true), 1000);
 	});
 </script>
 
 <ul class="flex h-full flex-1 flex-col-reverse px-5">
-	{#each messages as message, i (message.message.id)}
+	{#each $messages.data as message, i (message.message.id)}
 		{#if i == 0}
 			<li
-				class={messages[i + 1]?.conversationMember.id != message.conversationMember.id
+				class={$messages.data[i + 1]?.conversationMember.id != message.conversationMember.id
 					? 'pt-3'
 					: ''}
 			>
 				<MessageItem
 					data={message}
-					showProfileImage={messages[i - 1]?.conversationMember.id != message.conversationMember.id}
+					showProfileImage={$messages.data[i - 1]?.conversationMember.id !=
+						message.conversationMember.id}
 				>
-					<div class="flex justify-end gap-0.5" bind:this={firstElement}>
+					<div class="flex justify-end gap-0.5">
 						{#if messagesSeenByMembers.has(message.message.id)}
 							{#each messagesSeenByMembers.get(message.message.id) || [] as seenBy}
 								<ProfileImage
@@ -103,16 +112,18 @@
 						{/if}
 					</div>
 				</MessageItem>
+				<div bind:this={firstElement}></div>
 			</li>
 		{:else}
 			<li
-				class={messages[i + 1]?.conversationMember.id != message.conversationMember.id
+				class={$messages.data[i + 1]?.conversationMember.id != message.conversationMember.id
 					? 'pt-3'
 					: ''}
 			>
 				<MessageItem
 					data={message}
-					showProfileImage={messages[i - 1]?.conversationMember.id != message.conversationMember.id}
+					showProfileImage={$messages.data[i - 1]?.conversationMember.id !=
+						message.conversationMember.id}
 				>
 					<div class="flex justify-end gap-0.5">
 						{#if messagesSeenByMembers.has(message.message.id)}

@@ -68,9 +68,10 @@ export const conversations = sqliteTable("conversations", {
     createdAt: text("created_at")
         .notNull()
         .default(sql`current_timestamp`),
-    lastMessageAt: text("last_message_at")
-        .notNull()
-        .default(sql`current_timestamp`),
+    latestMessageId: text("latest_message_id").references(
+        (): AnySQLiteColumn => messages.id,
+        { onDelete: "set null" }
+    ),
     name: text("name").notNull(),
     isGroup: integer("is_group", { mode: "boolean" }).notNull(),
     conversationImageId: text("conversation_image_id").references(
@@ -85,6 +86,10 @@ export const conversationsRelations = relations(
         conversationImage: one(conversationImages, {
             fields: [conversations.conversationImageId],
             references: [conversationImages.id],
+        }),
+        latestMessage: one(messages, {
+            fields: [conversations.latestMessageId],
+            references: [messages.id],
         }),
     })
 );

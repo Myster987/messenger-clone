@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { uploadImage } from "../cloudinary";
+import { deleteImagesFromCloudinary, uploadImage } from "../cloudinary";
 import { pageQueryParams, postNewConversation } from "../validation";
 import {
     checkIfPossibleToCreateChat,
@@ -9,12 +9,19 @@ import {
     insertConversationImage,
     insertConversationMember,
     queryConversationById,
+    queryConversationWithImage,
     queryUserByIdWithProfileImageWithoutPassword,
     queryUserConversations,
+    updateConversation,
+    updateConversationImage,
 } from "../db/queries";
 import { SelectConversationImages } from "db/schema";
 import { generateId } from "../auth/generate_id";
-import { createGroupSchema } from "../auth/form_schemas";
+import {
+    createGroupSchema,
+    editConversationImage,
+    editConversationName,
+} from "../auth/form_schemas";
 import type { HonoSocketServer } from "../socket-helpers";
 
 export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
@@ -247,10 +254,57 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
             );
         }
     })
-    .patch("/group/:conversationId", async (c) => {
-        try {
-            const uplaodConversationImage = async (image: File) => {
-                const uploadData = await uploadImage(image);
+    .patch(
+        "/group/name/:conversationId",
+        zValidator("json", editConversationName),
+        async (c) => {
+            try {
+                const { conversationId } = c.req.param();
+                const reqBody = c.req.valid("json");
+
+                const conversationData = await queryConversationWithImage.get({
+                    conversationId,
+                });
+
+                if (reqBody.conversationName != conversationData?.name) {
+                    await updateConversation(conversationId, {
+                        name: reqBody.conversationName,
+                    });
+                }
+
+                return c.json({
+                    success: true,
+                });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
+    .patch(
+        "/group/image/:conversationId",
+        zValidator("form", editConversationImage),
+        async (c) => {
+            try {
+                const { conversationId } = c.req.param();
+                const reqBody = c.req.valid("form");
+
+                const conversationData = await queryConversationWithImage.get({
+                    conversationId,
+                });
+
+                if (conversationData?.conversationImage) {
+                    await deleteImagesFromCloudinary([
+                        conversationData.conversationImage.publicId,
+                    ]);
+                }
+
+                const uploadData = await uploadImage(reqBody.conversationImage);
 
                 if (uploadData.http_code >= 400) {
                     throw Error(
@@ -258,29 +312,35 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                     );
                 }
 
-                const insertedImage = await insertConversationImage.get({
-                    id: generateId(),
-                    imageUrl: uploadData.secure_url,
-                    publicId: uploadData.public_id,
+                let newImageData: SelectConversationImages;
+
+                if (conversationData?.conversationImage) {
+                    newImageData = await updateConversationImage({
+                        imageId: conversationData.conversationImageId!,
+                        imageUrl: uploadData.secure_url,
+                        publicId: uploadData.public_id,
+                    });
+                } else {
+                    newImageData = await insertConversationImage.get({
+                        id: generateId(),
+                        imageUrl: uploadData.secure_url,
+                        publicId: uploadData.public_id,
+                    });
+                }
+
+                await updateConversation(conversationId, {
+                    conversationImageId: newImageData.id,
                 });
 
-                return insertedImage;
-            };
-
-            let conversationImage: SelectConversationImages | null = null;
-
-            // if (reqBody.groupImage && typeof reqBody.groupImage != "string") {
-            //     conversationImage = await uplaodConversationImage(
-            //         reqBody.groupImage
-            //     );
-            // }
-        } catch (error) {
-            console.log(c.req.path, error);
-            return c.json(
-                {
-                    success: false,
-                },
-                500
-            );
+                return c.json({ success: true });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
         }
-    });
+    );

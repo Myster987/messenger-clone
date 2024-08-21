@@ -61,6 +61,7 @@ export type StoreConversation = InferQueryModel<
 			conversation: {
 				with: {
 					conversationImage: true;
+					latestMessage: true;
 					members: {
 						with: {
 							user: {
