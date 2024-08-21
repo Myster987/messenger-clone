@@ -9,6 +9,7 @@
 	import { ScrollArea } from '@/components/ui/scroll-area';
 	import { InputMessage } from '@/components/custom/input';
 	import { ConversationMessages } from '@/components/custom/message';
+	import { EditConversationNicksDialog } from '@/components/custom/dialog';
 	import { DisplayConversationImage, DisplayConversationName } from '@/components/custom/other';
 	import * as Card from '@/components/ui/card';
 	import type { SocketMessage } from '@/types';
@@ -110,6 +111,38 @@
 					return m;
 				}
 			});
+		}
+	);
+
+	$: attachEvent(
+		$ioClient,
+		`${conversationKey}:nicks`,
+		(data: { memberId: string; newNick: string }) => {
+			if (conversationData) {
+				conversationData.members = conversationData.members.map((m) => {
+					if (m.id != data.memberId) {
+						return m;
+					} else {
+						m.nick = data.newNick;
+						return m;
+					}
+				});
+				$conversationsStore.data = $conversationsStore.data?.map((c) => {
+					if (c.conversation.id != conversationId) {
+						return c;
+					} else {
+						c.conversation.members = c.conversation.members.map((m) => {
+							if (m.id != data.memberId) {
+								return m;
+							} else {
+								m.nick = data.newNick;
+								return m;
+							}
+						});
+						return c;
+					}
+				});
+			}
 		}
 	);
 </script>
@@ -239,5 +272,9 @@
 				/></Card.Title
 			>
 		</Card.Header>
+
+		<div class="px-3">
+			<EditConversationNicksDialog members={conversationData?.members || []} />
+		</div>
 	</Card.Root>
 </div>

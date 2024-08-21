@@ -172,5 +172,31 @@ export const actions: Actions = {
 		return {
 			success
 		};
+	},
+	editNick: async ({ request, params: { conversationId }, locals: { honoClient } }) => {
+		const formData = Object.fromEntries(await request.formData()) as unknown as {
+			memberId: string;
+			newNick: string;
+		};
+
+		const res = await honoClient.api.socket.members.nick[':memberId'].$patch({
+			param: {
+				memberId: formData.memberId
+			},
+			json: {
+				conversationId,
+				newNick: formData.newNick
+			}
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { success });
+		}
+
+		return {
+			success
+		};
 	}
 };
