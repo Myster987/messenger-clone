@@ -60,12 +60,12 @@
 			/>
 		</Command.Root>
 	</Card.Header>
-	<Card.Content class="h-[calc(100%-102.8px)] flex-grow p-2">
+	<Card.Content class="h-[calc(100%-102.8px)] p-2">
 		<ScrollArea class="h-full">
 			<ul class="mr-4 grid gap-1">
 				{#if $conversationsStore.data}
 					{#each conversations as { conversation } (conversation.id)}
-						<li class="w-full">
+						<li>
 							<a href="/user/{$userStore?.id}/conversation/{conversation.id}">
 								<Button variant="ghost" class="flex h-16 w-full justify-start gap-2 p-2">
 									<div class="relative">
@@ -91,6 +91,7 @@
 										<DisplayLatestMessage
 											latestMessage={conversation.latestMessage}
 											members={conversation.members}
+											class="max-w-[225px] truncate"
 										/>
 									</div>
 									<!-- {#if conversation.}
