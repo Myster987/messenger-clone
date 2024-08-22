@@ -2,7 +2,7 @@
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { browser } from '$app/environment';
 	import { io } from 'socket.io-client';
-	import { attachEvent, ioClient } from '@/socket';
+	import { ioClient } from '@/socket';
 	import { conversationsStore, userStore, honoClientStore } from '@/stores';
 	import { setOfflineStatus, setOnlineStatus } from '@/auth/status';
 	import { Sidebar } from '@/components/custom/sidebar';
@@ -27,22 +27,20 @@
 	$: if (browser)
 		$ioClient = io(PUBLIC_API_URL, { path: '/api/socket/io', addTrailingSlash: false });
 
-	$: attachEvent(
-		$ioClient,
-		`user:${$userStore?.id}:newConversation`,
-		`user:${$userStore?.id}:newConversation`,
-		(data: StoreConversation) => {
+	$: ioClient.attachEvent({
+		eventName: `user:${$userStore?.id}:newConversation`,
+		key: `user:${$userStore?.id}:newConversation`,
+		callback: (data: StoreConversation) => {
 			$conversationsStore.data = [...($conversationsStore?.data || []), data];
 		}
-	);
+	});
 
 	$: if (browser && $conversationsStore.data) {
 		$conversationsStore.data.forEach((c) =>
-			attachEvent(
-				$ioClient,
-				`conversation:${c.conversation.id}:messages`,
-				`conversation:${c.conversation.id}:updateLatestMessage`,
-				(data: SocketMessage) => {
+			ioClient.attachEvent({
+				eventName: `conversation:${c.conversation.id}:messages`,
+				key: `conversation:${c.conversation.id}:updateLatestMessage`,
+				callback: (data: SocketMessage) => {
 					$conversationsStore.data = $conversationsStore.data?.map((val) => {
 						if (val.conversation.id != c.conversation.id) {
 							return val;
@@ -53,7 +51,59 @@
 						}
 					});
 				}
-			)
+			})
+		);
+	}
+
+	$: if (browser && $conversationsStore.data) {
+		$conversationsStore.data.forEach((c) =>
+			ioClient.attachEvent({
+				eventName: `conversation:${c.conversation.id}:seenMessage`,
+				key: `conversation:${c.conversation.id}:seenMessageUpdateConversationsStore`,
+				callback: (data: { lastSeenMessageId: string; memberId: string }) => {
+					outer: for (let i = 0; i < $conversationsStore.data?.length!; i++) {
+						const { conversation } = $conversationsStore.data?.at(i)!;
+
+						for (let j = 0; j < conversation.members.length; j++) {
+							const member = conversation.members.at(j);
+
+							if (member?.id == data.memberId) {
+								member.lastSeenMessageId = data.lastSeenMessageId;
+								if ($conversationsStore.data) {
+									$conversationsStore.data[i].conversation.members[j] = member;
+								}
+								break outer;
+							}
+						}
+					}
+				}
+			})
+		);
+	}
+
+	$: if (browser && $conversationsStore.data) {
+		$conversationsStore.data?.forEach((c) =>
+			ioClient.attachEvent({
+				eventName: `conversation:${c.conversation.id}:nicks`,
+				key: `conversation:${c.conversation.id}:nicks`,
+				callback: (data: { memberId: string; newNick: string }) => {
+					$conversationsStore.data = $conversationsStore.data?.map((val) => {
+						if (val.conversation.id != c.conversation.id) {
+							return val;
+						} else {
+							val.conversation.members = val.conversation.members.map((m) => {
+								if (m.id != data.memberId) {
+									return m;
+								} else {
+									m.nick = data.newNick;
+									return m;
+								}
+							});
+							return val;
+						}
+					});
+				}
+			})
 		);
 	}
 

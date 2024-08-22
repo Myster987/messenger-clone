@@ -29,7 +29,7 @@
 	export let fetchMore: () => void;
 
 	const updateSeenMessages = async (newestMessage: MessageWithMember) => {
-		$honoClientStore.api.socket.messages.seen_message[':conversationId'].$patch({
+		await $honoClientStore.api.socket.messages.seen_message[':conversationId'].$patch({
 			param: {
 				conversationId: currentMember.conversationId
 			},
@@ -38,6 +38,7 @@
 				lastSeenMessageId: newestMessage.message.id
 			}
 		});
+		updateTimeout = 0;
 	};
 
 	let messagesSeenByMembers = new Map<string, string[]>();
@@ -64,14 +65,18 @@
 	};
 
 	let canFetch = false;
+	let mouted = false;
+	let updateTimeout: number;
 
 	$: if (isIntersecting && canFetch) fetchMore();
-	$: {
+	$: if (mouted) {
 		const newestMessage = $messages.data.at(0);
 
 		if (newestMessage && newestMessage?.message.id != currentMember.lastSeenMessageId) {
-			updateSeenMessages(newestMessage);
-			firstElement?.scrollIntoView(false);
+			if (!updateTimeout) {
+				updateTimeout = window.setTimeout(() => updateSeenMessages(newestMessage), 100);
+			}
+			firstElement?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
 		}
 	}
 	$: if (firstElement) {
@@ -83,6 +88,7 @@
 	$: updateSeenByMembers($messages.data, members);
 
 	onMount(() => {
+		mouted = true;
 		setTimeout(() => (canFetch = true), 1000);
 	});
 </script>

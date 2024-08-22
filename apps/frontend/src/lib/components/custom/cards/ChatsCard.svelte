@@ -81,7 +81,7 @@
 									</div>
 
 									<div>
-										<p class="text-left font-semibold">
+										<p class="text-left text-base font-semibold">
 											<DisplayConversationName
 												members={conversation.members}
 												isGroup={conversation.isGroup}
@@ -91,13 +91,15 @@
 										<DisplayLatestMessage
 											latestMessage={conversation.latestMessage}
 											members={conversation.members}
-											class="max-w-[225px] truncate"
+											class="max-w-[225px] truncate {conversation.latestMessageId !=
+												conversation.members.find((m) => m.userId == $userStore?.id)
+													?.lastSeenMessageId && 'text-foreground font-semibold'}"
 										/>
 									</div>
-									<!-- {#if conversation.}
-										
-									<Badge variant="notification" class="ml-auto" />
-									{/if} -->
+
+									{#if conversation.latestMessageId != conversation.members.find((m) => m.userId == $userStore?.id)?.lastSeenMessageId}
+										<Badge variant="notification" class="ml-auto" />
+									{/if}
 								</Button>
 							</a>
 						</li>

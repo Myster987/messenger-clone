@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { beforeNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { writable } from 'svelte/store';
-	import { attachEvent, ioClient } from '@/socket';
+	import { ioClient } from '@/socket';
 	import { userStore, honoClientStore, conversationsStore } from '@/stores';
 	import { Ellipsis } from 'lucide-svelte';
 	import { Badge } from '@/components/ui/badge';
@@ -66,20 +67,20 @@
 
 	$: conversationKey = `conversation:${conversationId}`;
 
-	$: attachEvent(
-		$ioClient,
-		`${conversationKey}:messages`,
-		`${conversationKey}:addNewMessageToArray`,
-		(data: SocketMessage) => {
-			$messages.data = [data.body, ...$messages.data];
+	$: ioClient.attachEvent({
+		eventName: `${conversationKey}:messages`,
+		key: `${conversationKey}:addNewMessageToArray`,
+		callback: (data: SocketMessage) => {
+			if (data.body.conversationMember.conversationId == conversationId) {
+				$messages.data = [data.body, ...$messages.data];
+			}
 		}
-	);
+	});
 
-	$: attachEvent(
-		$ioClient,
-		`${conversationKey}:seenMessage`,
-		`${conversationKey}:seenMessage`,
-		(data: { lastSeenMessageId: string; memberId: string }) => {
+	$: ioClient.attachEvent({
+		eventName: `${conversationKey}:seenMessage`,
+		key: `${conversationKey}:markAsSeen`,
+		callback: (data: { lastSeenMessageId: string; memberId: string }) => {
 			if (conversationData) {
 				conversationData.members = conversationData?.members.map((member) => {
 					if (member.id == data.memberId) {
@@ -89,13 +90,12 @@
 				});
 			}
 		}
-	);
+	});
 
-	$: attachEvent(
-		$ioClient,
-		`${conversationKey}:deletedMessages`,
-		`${conversationKey}:deletedMessages`,
-		(data: { messageId: string }) => {
+	$: ioClient.attachEvent({
+		eventName: `${conversationKey}:deletedMessages`,
+		key: `${conversationKey}:deletedMessages`,
+		callback: (data: { messageId: string }) => {
 			$messages.data = $messages.data.map((m) => {
 				if (m.message.id != data.messageId) {
 					return m;
@@ -106,13 +106,12 @@
 				}
 			});
 		}
-	);
+	});
 
-	$: attachEvent(
-		$ioClient,
-		`${conversationKey}:editedMessages`,
-		`${conversationKey}:editedMessages`,
-		(data: {
+	$: ioClient.attachEvent({
+		eventName: `${conversationKey}:editedMessages`,
+		key: `${conversationKey}:editedMessages`,
+		callback: (data: {
 			messageId: string;
 			newBody: string | null;
 			imageUrl: string | null;
@@ -129,40 +128,26 @@
 				}
 			});
 		}
-	);
+	});
 
-	$: attachEvent(
-		$ioClient,
-		`${conversationKey}:nicks`,
-		`${conversationKey}:nicks`,
-		(data: { memberId: string; newNick: string }) => {
-			if (conversationData) {
-				conversationData.members = conversationData.members.map((m) => {
-					if (m.id != data.memberId) {
-						return m;
-					} else {
-						m.nick = data.newNick;
-						return m;
-					}
-				});
-				$conversationsStore.data = $conversationsStore.data?.map((c) => {
-					if (c.conversation.id != conversationId) {
-						return c;
-					} else {
-						c.conversation.members = c.conversation.members.map((m) => {
-							if (m.id != data.memberId) {
-								return m;
-							} else {
-								m.nick = data.newNick;
-								return m;
-							}
-						});
-						return c;
-					}
-				});
-			}
-		}
-	);
+	beforeNavigate(() => {
+		ioClient.deleteListenerByKey({
+			eventName: `${conversationKey}:messages`,
+			key: `${conversationKey}:addNewMessageToArray`
+		});
+		ioClient.deleteListenerByKey({
+			eventName: `${conversationKey}:seenMessage`,
+			key: `${conversationKey}:markAsSeen`
+		});
+		ioClient.deleteListenerByKey({
+			eventName: `${conversationKey}:deletedMessages`,
+			key: `${conversationKey}:deletedMessages`
+		});
+		ioClient.deleteListenerByKey({
+			eventName: `${conversationKey}:editedMessages`,
+			key: `${conversationKey}:editedMessages`
+		});
+	});
 </script>
 
 <div class="flex gap-4">
