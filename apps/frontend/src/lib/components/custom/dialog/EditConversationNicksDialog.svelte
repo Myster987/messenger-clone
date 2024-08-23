@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Pencil, UserRoundPen } from 'lucide-svelte';
 	import { userStore } from '@/stores';
+	import { toast } from 'svelte-sonner';
+	import { Pencil, UserRoundPen } from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
 	import { ProfileImage } from '@/components/custom/profile_image';
 	import * as Dialog from '@/components/ui/dialog';
 	import type { MemberWithProfileImage } from '@/types';
-	import { toast } from 'svelte-sonner';
 
 	export let members: MemberWithProfileImage[];
+	$: currentMember = members.find((m) => m.userId == $userStore?.id);
 </script>
 
 <Dialog.Root>
@@ -43,8 +44,15 @@
 						class="flex w-full items-center gap-3"
 					>
 						<input type="text" name="memberId" value={member.id} hidden />
+						<input type="text" name="changedById" value={currentMember?.id} hidden />
 
-						<Input name="newNick" value={member.nick || member.user.fullName} />
+						<Input
+							name="newNick"
+							value={member.nick || member.user.fullName}
+							maxlength={255}
+							autocomplete="off"
+							required
+						/>
 
 						<Button type="submit" size="icon" class="px-2"><Pencil /></Button>
 					</form>
