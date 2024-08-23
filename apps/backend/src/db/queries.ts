@@ -114,6 +114,7 @@ export const queryConversationById = db.query.conversations
         where: eq(schema.conversations.id, sql.placeholder("conversationId")),
         with: {
             conversationImage: true,
+            latestMessage: true,
             members: {
                 with: {
                     user: {
@@ -137,7 +138,10 @@ export const queryConversationById = db.query.conversations
 
 export const queryUserConversations = db.query.conversationMembers
     .findMany({
-        where: eq(schema.conversationMembers.userId, sql.placeholder("userId")),
+        where: and(
+            eq(schema.conversationMembers.userId, sql.placeholder("userId")),
+            eq(schema.conversationMembers.currentlyMember, true)
+        ),
         columns: {},
         with: {
             conversation: {
@@ -243,6 +247,7 @@ export const insertConversationMember = db
         id: sql.placeholder("id"),
         conversationId: sql.placeholder("conversationId"),
         userId: sql.placeholder("userId"),
+        isAdmin: sql.placeholder("isAdmin"),
     })
     .returning()
     .prepare();
@@ -322,11 +327,31 @@ export const queryMessageByIdWithImageAndSender = db.query.messages
     })
     .prepare();
 
+export const queryMemberById = db.query.conversationMembers
+    .findFirst({
+        where: eq(schema.conversationMembers.id, sql.placeholder("memberId")),
+        with: {
+            user: true,
+        },
+    })
+    .prepare();
+
 export const insertMessageAsText = db
     .insert(schema.messages)
     .values({
         id: sql.placeholder("id"),
         senderId: sql.placeholder("senderId"),
+        body: sql.placeholder("body"),
+    })
+    .returning()
+    .prepare();
+
+export const insertMessageWithType = db
+    .insert(schema.messages)
+    .values({
+        id: sql.placeholder("id"),
+        senderId: sql.placeholder("senderId"),
+        type: sql.placeholder("type"),
         body: sql.placeholder("body"),
     })
     .returning()
@@ -432,17 +457,12 @@ export const queryConversationMessagesById = db
             createdAt: schema.messages.createdAt,
             updatedAt: schema.messages.updatedAt,
             senderId: schema.messages.senderId,
+            type: schema.messages.type,
             body: schema.messages.body,
             imageId: schema.messages.imageId,
             imageUrl: sql<string>`(select "image_url" from "images" where "messages"."image_id" = "images"."id") as "imageUrl"`,
         },
-        conversationMember: {
-            id: schema.conversationMembers.id,
-            conversationId: schema.conversationMembers.conversationId,
-            userId: schema.conversationMembers.userId,
-            nick: schema.conversationMembers.nick,
-            lastSeenMessageId: schema.conversationMembers.lastSeenMessageId,
-        },
+        conversationMember: schema.conversationMembers,
     })
     .from(schema.messages)
     .innerJoin(

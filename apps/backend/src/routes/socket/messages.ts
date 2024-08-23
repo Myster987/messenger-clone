@@ -135,21 +135,10 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                     type: "message",
                     body: {
                         message: {
-                            id: insertedMessage.id,
-                            createdAt: insertedMessage.createdAt,
-                            updatedAt: insertedMessage.updatedAt,
-                            senderId: reqBody.senderId,
-                            body: insertedMessage.body,
-                            imageId: null,
+                            ...insertedMessage,
                             imageUrl: null,
                         },
-                        conversationMember: {
-                            id: reqBody.senderId,
-                            conversationId,
-                            userId: memberData.userId,
-                            nick: memberData.nick,
-                            lastSeenMessageId: memberData.lastSeenMessageId,
-                        },
+                        conversationMember: memberData,
                     },
                 });
 
@@ -219,21 +208,11 @@ export const messagesRoute = new Hono<{ Variables: HonoSocketServer }>()
                     type: "image",
                     body: {
                         message: {
-                            id: insertedMessage.id,
-                            createdAt: insertedMessage.createdAt,
-                            updatedAt: insertedMessage.updatedAt,
-                            senderId: reqBody.senderId,
-                            body: null,
+                            ...insertedMessage,
                             imageId: insertedImage.id,
                             imageUrl: insertedImage.imageUrl,
                         },
-                        conversationMember: {
-                            id: reqBody.senderId,
-                            conversationId,
-                            userId: memberData.userId,
-                            nick: memberData.nick,
-                            lastSeenMessageId: memberData.lastSeenMessageId,
-                        },
+                        conversationMember: memberData,
                     },
                 });
 

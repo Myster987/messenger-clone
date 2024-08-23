@@ -8,12 +8,15 @@ import {
     insertConversationAsGroup,
     insertConversationImage,
     insertConversationMember,
+    insertMessageWithType,
     queryConversationById,
     queryConversationWithImage,
+    queryMemberById,
     queryUserByIdWithProfileImageWithoutPassword,
     queryUserConversations,
     updateConversation,
     updateConversationImage,
+    updateConversationLatestMessage,
 } from "../db/queries";
 import { SelectConversationImages } from "db/schema";
 import { generateId } from "../auth/generate_id";
@@ -126,6 +129,7 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                         id: generateId(),
                         conversationId: conversationInsertion.id,
                         userId: user?.id,
+                        isAdmin: false,
                     })
                 )
             );
@@ -202,6 +206,7 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                         id: generateId(),
                         conversationId: conversationInsertion.id,
                         userId: user?.id,
+                        isAdmin: user?.id == reqBody.creatorId,
                     })
                 )
             );
@@ -261,16 +266,49 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
             try {
                 const { conversationId } = c.req.param();
                 const reqBody = c.req.valid("json");
+                const io = c.get("io");
 
                 const conversationData = await queryConversationWithImage.get({
                     conversationId,
                 });
 
-                if (reqBody.conversationName != conversationData?.name) {
+                if (reqBody.newName != conversationData?.name) {
                     await updateConversation(conversationId, {
-                        name: reqBody.conversationName,
+                        name: reqBody.newName,
                     });
                 }
+
+                const member = await queryMemberById.get({
+                    memberId: reqBody.changedById,
+                });
+
+                const insertedMessage = await insertMessageWithType.get({
+                    id: generateId(),
+                    senderId: reqBody.changedById,
+                    body: `${member?.nick || member?.user.fullName} to ${reqBody.newName}`,
+                    type: "group-name-change",
+                });
+
+                await updateConversationLatestMessage(
+                    conversationId,
+                    insertedMessage.id
+                );
+
+                const groupNameEvent = `conversation:${conversationId}:groupName`;
+                const messageEvent = `conversation:${conversationId}:messages`;
+
+                io.emit(groupNameEvent, {
+                    conversationId,
+                    newName: reqBody.newName,
+                });
+
+                io.emit(messageEvent, {
+                    type: "message",
+                    body: {
+                        message: insertedMessage,
+                        conversationMember: member,
+                    },
+                });
 
                 return c.json({
                     success: true,
@@ -293,6 +331,7 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
             try {
                 const { conversationId } = c.req.param();
                 const reqBody = c.req.valid("form");
+                const io = c.get("io");
 
                 const conversationData = await queryConversationWithImage.get({
                     conversationId,
@@ -304,7 +343,7 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                     ]);
                 }
 
-                const uploadData = await uploadImage(reqBody.conversationImage);
+                const uploadData = await uploadImage(reqBody.newImage);
 
                 if (uploadData.http_code >= 400) {
                     throw Error(
@@ -330,6 +369,38 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
 
                 await updateConversation(conversationId, {
                     conversationImageId: newImageData.id,
+                });
+
+                const member = await queryMemberById.get({
+                    memberId: reqBody.changedById,
+                });
+
+                const insertedMessage = await insertMessageWithType.get({
+                    id: generateId(),
+                    senderId: reqBody.changedById,
+                    body: `${member?.nick || member?.user.fullName} changed group image.`,
+                    type: "group-image-change",
+                });
+
+                await updateConversationLatestMessage(
+                    conversationId,
+                    insertedMessage.id
+                );
+
+                const groupImageEvent = `conversation:${conversationId}:groupImage`;
+                const messageEvent = `conversation:${conversationId}:messages`;
+
+                io.emit(groupImageEvent, {
+                    conversationId,
+                    newImage: newImageData,
+                });
+
+                io.emit(messageEvent, {
+                    type: "message",
+                    body: {
+                        message: insertedMessage,
+                        conversationMember: member,
+                    },
                 });
 
                 return c.json({ success: true });
