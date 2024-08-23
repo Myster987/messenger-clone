@@ -132,6 +132,12 @@ export const conversationMembers = sqliteTable(
             .notNull()
             .references(() => users.id),
         nick: text("nick"),
+        isAdmin: integer("is_admin", { mode: "boolean" })
+            .notNull()
+            .default(false),
+        currentlyMember: integer("currently_member", { mode: "boolean" })
+            .notNull()
+            .default(true),
         lastSeenMessageId: text("last_seen_message_id").references(
             (): AnySQLiteColumn => messages.id
         ),
@@ -182,6 +188,7 @@ export const messages = sqliteTable("messages", {
     senderId: text("sender_id")
         .notNull()
         .references(() => conversationMembers.id),
+    type: text("type").notNull().default("message"),
     body: text("body"),
     imageId: text("image_id").references(() => images.id, {
         onDelete: "set null",
