@@ -6,12 +6,12 @@
 	import { EllipsisVertical, FilePenLine, Trash2 } from 'lucide-svelte';
 	import { ProfileImage } from '../profile_image';
 	import { cn } from '@/utils';
-	import { Button, buttonVariants } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
+	import { Button, buttonVariants } from '@/components/ui/button';
+	import { ImageMessage, DisplayDiffrentTypesOfMessages } from '@/components/custom/message';
 	import * as Popover from '@/components/ui/popover';
 	import * as AlertDialog from '@/components/ui/alert-dialog';
 	import * as Dialog from '@/components/ui/dialog';
-	import ImageMessage from './ImageMessage.svelte';
 	import type { MessageWithMember } from '@/types';
 
 	export let data: MessageWithMember;
@@ -34,7 +34,9 @@
 </script>
 
 <div class="group flex flex-col gap-1">
-	{#if isCurrentUser}
+	{#if data.message.type != 'message'}
+		<DisplayDiffrentTypesOfMessages {isCurrentUser} message={data.message} />
+	{:else if isCurrentUser}
 		<div class="flex flex-row-reverse items-center gap-2">
 			{#if isDeleted}
 				<p class="text-muted-foreground rounded-full border px-3 py-1 font-light">

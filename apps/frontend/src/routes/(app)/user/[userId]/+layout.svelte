@@ -42,13 +42,11 @@
 				key: `conversation:${c.conversation.id}:updateLatestMessage`,
 				callback: (data: SocketMessage) => {
 					$conversationsStore.data = $conversationsStore.data?.map((val) => {
-						if (val.conversation.id != c.conversation.id) {
-							return val;
-						} else {
+						if (val.conversation.id == c.conversation.id) {
 							val.conversation.latestMessage = data.body.message;
 							val.conversation.latestMessageId = data.body.message.id;
-							return val;
 						}
+						return val;
 					});
 				}
 			})
@@ -88,19 +86,58 @@
 				key: `conversation:${c.conversation.id}:nicks`,
 				callback: (data: { memberId: string; newNick: string }) => {
 					$conversationsStore.data = $conversationsStore.data?.map((val) => {
-						if (val.conversation.id != c.conversation.id) {
-							return val;
-						} else {
+						if (val.conversation.id == c.conversation.id) {
 							val.conversation.members = val.conversation.members.map((m) => {
-								if (m.id != data.memberId) {
-									return m;
-								} else {
+								if (m.id == data.memberId) {
 									m.nick = data.newNick;
-									return m;
 								}
+								return m;
 							});
-							return val;
 						}
+						return val;
+					});
+				}
+			})
+		);
+	}
+
+	$: if (browser && $conversationsStore.data) {
+		$conversationsStore.data?.forEach((c) =>
+			ioClient.attachEvent({
+				eventName: `conversation:${c.conversation.id}:groupName`,
+				key: `conversation:${c.conversation.id}:groupName:updateConversationName`,
+				callback: (data: { conversationId: string; newName: string }) => {
+					$conversationsStore.data = $conversationsStore.data?.map((val) => {
+						if (val.conversation.id == data.conversationId) {
+							val.conversation.name = data.newName;
+						}
+						return val;
+					});
+				}
+			})
+		);
+	}
+
+	$: if (browser && $conversationsStore.data) {
+		$conversationsStore.data?.forEach((c) =>
+			ioClient.attachEvent({
+				eventName: `conversation:${c.conversation.id}:groupImage`,
+				key: `conversation:${c.conversation.id}:groupName:updateConversationImage`,
+				callback: (data: {
+					conversationId: string;
+					newImage: {
+						id: string;
+						createdAt: string;
+						imageUrl: string;
+						publicId: string;
+					};
+				}) => {
+					$conversationsStore.data = $conversationsStore.data?.map((val) => {
+						if (val.conversation.id == data.conversationId) {
+							val.conversation.conversationImage = data.newImage;
+							val.conversation.conversationImageId = data.newImage.id;
+						}
+						return val;
 					});
 				}
 			})

@@ -177,6 +177,7 @@ export const actions: Actions = {
 		const formData = Object.fromEntries(await request.formData()) as unknown as {
 			memberId: string;
 			newNick: string;
+			changedById: string;
 		};
 
 		const res = await honoClient.api.socket.members.nick[':memberId'].$patch({
@@ -185,8 +186,59 @@ export const actions: Actions = {
 			},
 			json: {
 				conversationId,
-				newNick: formData.newNick
+				newNick: formData.newNick,
+				changedById: formData.changedById
 			}
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { success });
+		}
+
+		return {
+			success
+		};
+	},
+	editConversationName: async ({ request, params: { conversationId }, locals: { honoClient } }) => {
+		const formData = Object.fromEntries(await request.formData()) as unknown as {
+			newName: string;
+			changedById: string;
+		};
+
+		const res = await honoClient.api.conversations.group.name[':conversationId'].$patch({
+			param: {
+				conversationId
+			},
+			json: formData
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { success });
+		}
+
+		return {
+			success
+		};
+	},
+	editConversationImage: async ({
+		request,
+		params: { conversationId },
+		locals: { honoClient }
+	}) => {
+		const formData = Object.fromEntries(await request.formData()) as unknown as {
+			newImage: File;
+			changedById: string;
+		};
+
+		const res = await honoClient.api.conversations.group.image[':conversationId'].$patch({
+			param: {
+				conversationId
+			},
+			form: formData
 		});
 
 		const { success } = await res.json();

@@ -1,38 +1,26 @@
 import type { InferQueryModel } from 'db/types';
+import type { SelectConversationMembers, SelectMessages } from 'db/schema';
 
-export type Prittyfy<T> = {
-	[K in keyof T]: T[K];
-} & {};
+export type Prettify<T> = {
+	[K in keyof T]: T[K] extends object ? Prettify<T[K]> : T[K];
+	// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+} & unknown;
 
 export type User = Omit<InferQueryModel<'users', { with: { profileImage: true } }>, 'password'>;
 
-export type Member = {
-	id: string;
-	conversationId: string;
-	userId: string;
-	nick: string | null;
-	lastSeenMessageId: string | null;
-};
+export type Member = SelectConversationMembers;
 
-export type Message = {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	imageUrl: string;
-	senderId: string;
-	body: string | null;
-	imageId: string | null;
-};
+export type Message = SelectMessages & { imageUrl: string };
 
-export type MessageWithMember = {
+export type MessageWithMember = Prettify<{
 	message: Message;
 	conversationMember: Member;
-};
+}>;
 
-export type SocketMessage = {
+export type SocketMessage = Prettify<{
 	type: 'message' | 'image';
 	body: MessageWithMember;
-};
+}>;
 
 export type MemberWithProfileImage = InferQueryModel<
 	'conversationMembers',
@@ -56,6 +44,8 @@ export type StoreConversation = InferQueryModel<
 			nick: false;
 			userId: false;
 			lastSeenMessageId: false;
+			isAdmin: false;
+			currentlyMember: false;
 		};
 		with: {
 			conversation: {

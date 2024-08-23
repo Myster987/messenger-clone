@@ -11,7 +11,11 @@
 	import { ScrollArea } from '@/components/ui/scroll-area';
 	import { InputMessage } from '@/components/custom/input';
 	import { ConversationMessages } from '@/components/custom/message';
-	import { EditConversationNicksDialog } from '@/components/custom/dialog';
+	import {
+		EditConversationNicksDialog,
+		EditGroupImageDialog,
+		EditGroupName
+	} from '@/components/custom/dialog';
 	import { DisplayConversationImage, DisplayConversationName } from '@/components/custom/other';
 	import * as Card from '@/components/ui/card';
 	import type { SocketMessage } from '@/types';
@@ -53,7 +57,9 @@
 		});
 		const { data: resData, nextPage: nextApiPage } = await res.json();
 		$messages = {
-			data: [...$messages.data, ...(resData || [])],
+			data: [...$messages.data, ...(resData || [])].filter(
+				(obj1, i, arr) => arr.findIndex((obj2) => obj2.message.id == obj1.message.id) == i
+			),
 			isLoading: false,
 			nextPage: nextApiPage
 		};
@@ -97,13 +103,11 @@
 		key: `${conversationKey}:deletedMessages`,
 		callback: (data: { messageId: string }) => {
 			$messages.data = $messages.data.map((m) => {
-				if (m.message.id != data.messageId) {
-					return m;
-				} else {
+				if (m.message.id == data.messageId) {
 					m.message.body = null;
 					m.message.imageId = null;
-					return m;
 				}
+				return m;
 			});
 		}
 	});
@@ -118,14 +122,12 @@
 			updatedAt: string;
 		}) => {
 			$messages.data = $messages.data.map((m) => {
-				if (m.message.id != data.messageId) {
-					return m;
-				} else {
+				if (m.message.id == data.messageId) {
 					m.message.updatedAt = data.updatedAt;
 					m.message.body = data.newBody;
 					m.message.imageUrl = data.imageUrl!;
-					return m;
 				}
+				return m;
 			});
 		}
 	});
@@ -276,8 +278,15 @@
 			>
 		</Card.Header>
 
-		<div class="px-3">
+		<div class="flex flex-col gap-2 px-3">
 			<EditConversationNicksDialog members={conversationData?.members || []} />
+			{#if conversationData?.isGroup}
+				<EditGroupName conversation={conversationData} />
+				<EditGroupImageDialog
+					conversationImage={conversationData.conversationImage}
+					{currentMember}
+				/>
+			{/if}
 		</div>
 	</Card.Root>
 </div>
