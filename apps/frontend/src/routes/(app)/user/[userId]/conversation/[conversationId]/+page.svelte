@@ -17,6 +17,7 @@
 		EditGroupName
 	} from '@/components/custom/dialog';
 	import { DisplayConversationImage, DisplayConversationName } from '@/components/custom/other';
+	import * as Accordion from '@/components/ui/accordion';
 	import * as Card from '@/components/ui/card';
 	import type { SocketMessage } from '@/types';
 	import type { PageData } from './$types';
@@ -278,15 +279,27 @@
 			>
 		</Card.Header>
 
-		<div class="flex flex-col gap-2 px-3">
-			<EditConversationNicksDialog members={conversationData?.members || []} />
-			{#if conversationData?.isGroup}
-				<EditGroupName conversation={conversationData} />
-				<EditGroupImageDialog
-					conversationImage={conversationData.conversationImage}
-					{currentMember}
-				/>
-			{/if}
-		</div>
+		<!-- <div class="flex flex-col gap-2 px-3"> -->
+
+		<Accordion.Root class="mx-3">
+			<Accordion.Item value="editing" class={'w-full border-none'}>
+				<Accordion.Trigger
+					class="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-3 hover:no-underline"
+					>Menage conversation</Accordion.Trigger
+				>
+				<Accordion.Content class="mt-2">
+					<div class="flex flex-col gap-2">
+						<EditConversationNicksDialog members={conversationData?.members || []} />
+						{#if conversationData?.isGroup}
+							<EditGroupName conversation={conversationData} />
+							<EditGroupImageDialog
+								conversationImage={conversationData.conversationImage}
+								{currentMember}
+							/>
+						{/if}
+					</div>
+				</Accordion.Content>
+			</Accordion.Item>
+		</Accordion.Root>
 	</Card.Root>
 </div>
