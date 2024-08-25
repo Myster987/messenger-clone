@@ -12,10 +12,12 @@
 	import { InputMessage } from '@/components/custom/input';
 	import { ConversationMessages } from '@/components/custom/message';
 	import {
+		AddNewMembersToGroup,
 		EditConversationNicksDialog,
 		EditGroupImageDialog,
 		EditGroupName
 	} from '@/components/custom/dialog';
+	import { ProfileImage } from '@/components/custom/profile_image';
 	import { DisplayConversationImage, DisplayConversationName } from '@/components/custom/other';
 	import * as Accordion from '@/components/ui/accordion';
 	import * as Card from '@/components/ui/card';
@@ -23,7 +25,13 @@
 	import type { PageData } from './$types';
 
 	export let data: PageData;
-	$: ({ conversationData, messageFormObject, imageFormObject, messagesData } = data);
+	$: ({
+		conversationData,
+		messageFormObject,
+		imageFormObject,
+		addMembersToGroupFormObject,
+		messagesData
+	} = data);
 
 	let isIntersecting: boolean;
 	let moreInfoOpen = false;
@@ -240,66 +248,109 @@
 	</Card.Root>
 
 	<Card.Root class="w-[clamp(300px,300px+10svw,600px)] {!moreInfoOpen && 'hidden'}">
-		<Card.Header class="flex items-center gap-1">
-			{#if conversationData}
-				{#if conversationData.isGroup}
-					<div class="h-[66px] w-[66px]">
-						<DisplayConversationImage
-							isGroup={conversationData.isGroup}
-							conversationImage={conversationData.conversationImage}
-							conversationName={conversationData.name}
-							usersProfileImages={conversationData.members.map(
-								(member) => member.user.profileImage
-							)}
-							width={14}
-							height={14}
-						/>
-					</div>
-				{:else}
-					<div class="h-24 w-24">
-						<DisplayConversationImage
-							isGroup={conversationData.isGroup}
-							conversationImage={conversationData.conversationImage}
-							conversationName={conversationData.name}
-							usersProfileImages={conversationData.members.map(
-								(member) => member.user.profileImage
-							)}
-							width={15}
-							height={15}
-						/>
-					</div>
-				{/if}
-			{/if}
-			<Card.Title
-				><DisplayConversationName
-					members={conversationData?.members || []}
-					isGroup={conversationData?.isGroup}
-					groupName={conversationData?.name}
-				/></Card.Title
-			>
-		</Card.Header>
-
-		<!-- <div class="flex flex-col gap-2 px-3"> -->
-
-		<Accordion.Root class="mx-3">
-			<Accordion.Item value="editing" class={'w-full border-none'}>
-				<Accordion.Trigger
-					class="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-3 hover:no-underline"
-					>Menage conversation</Accordion.Trigger
-				>
-				<Accordion.Content class="mt-2">
-					<div class="flex flex-col gap-2">
-						<EditConversationNicksDialog members={conversationData?.members || []} />
-						{#if conversationData?.isGroup}
-							<EditGroupName conversation={conversationData} />
-							<EditGroupImageDialog
+		<ScrollArea class="h-[calc(100vh-32px)]">
+			<Card.Header class="flex items-center gap-1">
+				{#if conversationData}
+					{#if conversationData.isGroup}
+						<div class="h-[66px] w-[66px]">
+							<DisplayConversationImage
+								isGroup={conversationData.isGroup}
 								conversationImage={conversationData.conversationImage}
-								{currentMember}
+								conversationName={conversationData.name}
+								usersProfileImages={conversationData.members.map(
+									(member) => member.user.profileImage
+								)}
+								width={14}
+								height={14}
 							/>
-						{/if}
-					</div>
-				</Accordion.Content>
-			</Accordion.Item>
-		</Accordion.Root>
+						</div>
+					{:else}
+						<div class="h-24 w-24">
+							<DisplayConversationImage
+								isGroup={conversationData.isGroup}
+								conversationImage={conversationData.conversationImage}
+								conversationName={conversationData.name}
+								usersProfileImages={conversationData.members.map(
+									(member) => member.user.profileImage
+								)}
+								width={15}
+								height={15}
+							/>
+						</div>
+					{/if}
+				{/if}
+				<Card.Title
+					><DisplayConversationName
+						members={conversationData?.members || []}
+						isGroup={conversationData?.isGroup}
+						groupName={conversationData?.name}
+					/></Card.Title
+				>
+			</Card.Header>
+
+			<!-- <div class="flex flex-col gap-2 px-3"> -->
+
+			<Accordion.Root class="mx-3 flex flex-col gap-2">
+				<Accordion.Item value="editing" class="w-full border-none">
+					<Accordion.Trigger
+						class="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-3 hover:no-underline"
+						>Menage conversation</Accordion.Trigger
+					>
+					<Accordion.Content class="mt-2">
+						<div class="flex flex-col gap-2">
+							<EditConversationNicksDialog members={conversationData?.members || []} />
+							{#if conversationData?.isGroup}
+								<EditGroupName conversation={conversationData} />
+								<EditGroupImageDialog
+									conversationImage={conversationData.conversationImage}
+									{currentMember}
+								/>
+							{/if}
+						</div>
+					</Accordion.Content>
+				</Accordion.Item>
+
+				{#if conversationData?.isGroup}
+					<Accordion.Item value="users" class="w-full border-none">
+						<Accordion.Trigger
+							class="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-3 hover:no-underline"
+							>Conversation members</Accordion.Trigger
+						>
+						<Accordion.Content class="mt-2">
+							<ul class="flex flex-col gap-2">
+								{#each conversationData?.members || [] as member}
+									{#if member.currentlyMember}
+										<li class="flex w-full items-center justify-start gap-2 p-2">
+											<div>
+												<ProfileImage
+													imageUrl={member.user.profileImage?.imageUrl}
+													name={member.user.fullName}
+												/>
+											</div>
+											<div>
+												<p class="font-semibold">{member.user.fullName}</p>
+												<p class="text-muted-foreground text-left text-sm">
+													{#if member.isAdmin}
+														Admin
+													{:else}
+														Member
+													{/if}
+												</p>
+											</div>
+										</li>
+									{/if}
+								{/each}
+								<li>
+									<AddNewMembersToGroup
+										{addMembersToGroupFormObject}
+										currentConversation={conversationData}
+									/>
+								</li>
+							</ul>
+						</Accordion.Content>
+					</Accordion.Item>
+				{/if}
+			</Accordion.Root>
+		</ScrollArea>
 	</Card.Root>
 </div>

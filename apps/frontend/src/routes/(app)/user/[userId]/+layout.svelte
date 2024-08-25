@@ -15,12 +15,8 @@
 	$: conversationsStore.updateAsync(data.streamed.conversations);
 	$: if ($conversationsStore.data)
 		$conversationsStore.data = $conversationsStore.data.sort((a, b) => {
-			const dateA = new Date(
-				a.conversation.latestMessage?.updatedAt || Date.now()
-			) as unknown as number;
-			const dateB = new Date(
-				b.conversation.latestMessage?.updatedAt || Date.now()
-			) as unknown as number;
+			const dateA = new Date(a.conversation.latestMessage?.updatedAt || 0) as unknown as number;
+			const dateB = new Date(b.conversation.latestMessage?.updatedAt || 0) as unknown as number;
 			return dateB - dateA;
 		});
 

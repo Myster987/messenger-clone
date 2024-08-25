@@ -120,3 +120,8 @@ export const editConversationImage = z.object({
         .instanceof(File, { message: "Image is required" })
         .refine((file) => file.size > 0, "Image should have more than 0 kb"),
 });
+
+export const addMemberToConversation = z.object({
+    addedById: z.string().min(1).max(20).trim(),
+    newUserIds: z.array(z.string().min(1).max(20).trim()).min(1),
+});

@@ -4,10 +4,12 @@ import { deleteImagesFromCloudinary, uploadImage } from "../cloudinary";
 import { pageQueryParams, postNewConversation } from "../validation";
 import {
     checkIfPossibleToCreateChat,
+    checkIfUserInConversation,
     insertConversationAsChat,
     insertConversationAsGroup,
     insertConversationImage,
     insertConversationMember,
+    insertConversationMemberAsAdmin,
     insertMessageWithType,
     queryConversationById,
     queryConversationWithImage,
@@ -17,10 +19,12 @@ import {
     updateConversation,
     updateConversationImage,
     updateConversationLatestMessage,
+    updateIsCurrentMember,
 } from "../db/queries";
 import { SelectConversationImages } from "db/schema";
 import { generateId } from "../auth/generate_id";
 import {
+    addMemberToConversation,
     createGroupSchema,
     editConversationImage,
     editConversationName,
@@ -129,7 +133,6 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                         id: generateId(),
                         conversationId: conversationInsertion.id,
                         userId: user?.id,
-                        isAdmin: false,
                     })
                 )
             );
@@ -201,14 +204,21 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
             );
 
             const membersInsertion = await Promise.all(
-                usersData.map((user) =>
-                    insertConversationMember.get({
+                usersData.map((user) => {
+                    const isAdmin = user?.id == reqBody.creatorId;
+                    if (isAdmin) {
+                        return insertConversationMemberAsAdmin.get({
+                            id: generateId(),
+                            conversationId: conversationInsertion.id,
+                            userId: user?.id,
+                        });
+                    }
+                    return insertConversationMember.get({
                         id: generateId(),
                         conversationId: conversationInsertion.id,
                         userId: user?.id,
-                        isAdmin: user?.id == reqBody.creatorId,
-                    })
-                )
+                    });
+                })
             );
 
             if (membersInsertion.length == 0) {
@@ -400,6 +410,111 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                     body: {
                         message: insertedMessage,
                         conversationMember: member,
+                    },
+                });
+
+                return c.json({ success: true });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
+    .put(
+        "members/:conversationId",
+        zValidator("json", addMemberToConversation),
+        async (c) => {
+            try {
+                const { conversationId } = c.req.param();
+                const reqBody = c.req.valid("json");
+                const io = c.get("io");
+
+                const exists = await Promise.all(
+                    reqBody.newUserIds.map((userId) =>
+                        checkIfUserInConversation.get({
+                            conversationId,
+                            userId,
+                        })
+                    )
+                );
+
+                let insertedMembers = await Promise.all(
+                    exists.map((e, i) => {
+                        if (e && e.currentlyMember) {
+                            return;
+                        } else if (e && !e.currentlyMember) {
+                            return updateIsCurrentMember({
+                                memberId: e.id,
+                                isCurrentMember: true,
+                            });
+                        } else {
+                            return insertConversationMember.get({
+                                id: generateId(),
+                                conversationId,
+                                userId: reqBody.newUserIds[i],
+                            });
+                        }
+                    })
+                );
+
+                const conversationData = await queryConversationById.get({
+                    conversationId,
+                });
+
+                insertedMembers = insertedMembers.filter(
+                    (m) => typeof m != "undefined"
+                );
+                const insertedMembersNames = exists.filter((e) =>
+                    insertedMembers.find((m) => m?.id == e?.id)
+                );
+
+                const addedBy = await queryMemberById.get({
+                    memberId: reqBody.addedById,
+                });
+
+                let body = "";
+
+                if (insertedMembersNames.length == 1) {
+                    body = `${addedBy?.nick || addedBy?.user.fullName} added ${insertedMembersNames[0]}.`;
+                } else if (insertedMembersNames.length == 2) {
+                    body = `${addedBy?.nick || addedBy?.user.fullName} added ${insertedMembersNames[0]} and ${insertedMembersNames[1]}.`;
+                } else {
+                    body = `${addedBy?.nick || addedBy?.user.fullName} added ${insertedMembersNames.slice(0, -1).join(", ")} and ${insertedMembersNames.at(-1)}`;
+                }
+
+                const insertedMessage = await insertMessageWithType.get({
+                    id: generateId(),
+                    senderId: reqBody.addedById,
+                    body,
+                    type: "group-add-members",
+                });
+
+                await updateConversationLatestMessage(
+                    conversationId,
+                    insertedMessage.id
+                );
+
+                const newConversaionKeys = insertedMembers.map(
+                    (m) => `user:${m?.userId}:newConversation`
+                );
+                const messageEvent = `conversation:${conversationId}:messages`;
+
+                newConversaionKeys.forEach((eventKey) =>
+                    io.emit(eventKey, {
+                        conversation: conversationData,
+                    })
+                );
+
+                io.emit(messageEvent, {
+                    type: "message",
+                    body: {
+                        message: insertedMessage,
+                        conversationMember: addedBy,
                     },
                 });
 

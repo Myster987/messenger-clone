@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { message, superValidate, withFiles } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { imageInputSchema, messageInputSchema } from '@/auth/form_schemas';
+import { addMembersToGroup, imageInputSchema, messageInputSchema } from '@/auth/form_schemas';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({
@@ -30,6 +30,7 @@ export const load: PageServerLoad = async ({
 
 	return {
 		conversationData: await fetchConversationData(),
+		addMembersToGroupFormObject: await superValidate(zod(addMembersToGroup)),
 		messageFormObject: await superValidate(zod(messageInputSchema)),
 		imageFormObject: await superValidate(zod(imageInputSchema)),
 		messagesData: await fetchMessages()
@@ -250,5 +251,31 @@ export const actions: Actions = {
 		return {
 			success
 		};
+	},
+	addNewMembersToGroup: async ({ request, params: { conversationId }, locals: { honoClient } }) => {
+		const form = await superValidate(request, zod(addMembersToGroup));
+
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		const formData = form.data;
+
+		console.log(formData);
+
+		const res = await honoClient.api.conversations.members[':conversationId'].$put({
+			param: {
+				conversationId
+			},
+			json: formData
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { form, success });
+		}
+
+		return { form, success };
 	}
 };

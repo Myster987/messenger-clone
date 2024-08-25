@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+export const addMembersToGroup = z.object({
+	addedById: z.string().min(1).max(20).trim(),
+	newUserIds: z
+		.array(z.string().min(1).max(20).trim())
+		.min(1, 'Please select at least one new member')
+});
+
 export const createGroupSchema = z.object({
 	groupName: z
 		.string()

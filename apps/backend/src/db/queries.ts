@@ -241,16 +241,55 @@ export const updateConversationLatestMessage = (
         .returning()
         .get();
 
+export const checkIfUserInConversation = db.query.conversationMembers
+    .findFirst({
+        where: and(
+            eq(
+                schema.conversationMembers.conversationId,
+                sql.placeholder("conversationId")
+            ),
+            eq(schema.conversationMembers.userId, sql.placeholder("userId"))
+        ),
+        with: {
+            user: true,
+        },
+    })
+    .prepare();
+
 export const insertConversationMember = db
     .insert(schema.conversationMembers)
     .values({
         id: sql.placeholder("id"),
         conversationId: sql.placeholder("conversationId"),
         userId: sql.placeholder("userId"),
-        isAdmin: sql.placeholder("isAdmin"),
     })
     .returning()
     .prepare();
+
+export const insertConversationMemberAsAdmin = db
+    .insert(schema.conversationMembers)
+    .values({
+        id: sql.placeholder("id"),
+        conversationId: sql.placeholder("conversationId"),
+        userId: sql.placeholder("userId"),
+        isAdmin: true,
+    })
+    .returning()
+    .prepare();
+
+export const updateIsCurrentMember = ({
+    memberId,
+    isCurrentMember,
+}: {
+    memberId: string;
+    isCurrentMember: boolean;
+}) =>
+    db
+        .update(schema.conversationMembers)
+        .set({ currentlyMember: isCurrentMember })
+        .where(eq(schema.conversationMembers.id, memberId))
+        .returning()
+        .get();
 
 export const updateConversationMemberNick = ({
     memberId,
