@@ -125,3 +125,7 @@ export const addMemberToConversation = z.object({
     addedById: z.string().min(1).max(20).trim(),
     newUserIds: z.array(z.string().min(1).max(20).trim()).min(1),
 });
+
+export const leaveConversation = z.object({
+    memberId: z.string().min(1).max(20).trim(),
+});

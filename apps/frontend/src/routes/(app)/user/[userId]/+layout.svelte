@@ -8,7 +8,7 @@
 	import { Sidebar } from '@/components/custom/sidebar';
 	import { ChatsCard } from '@/components/custom/cards';
 	import type { LayoutData } from './$types';
-	import type { SocketMessage, StoreConversation } from '@/types';
+	import type { MemberWithProfileImage, SocketMessage, StoreConversation } from '@/types';
 
 	export let data: LayoutData;
 
@@ -135,6 +135,41 @@
 						}
 						return val;
 					});
+				}
+			})
+		);
+	}
+
+	$: if (browser && $conversationsStore.data) {
+		$conversationsStore.data?.forEach((c) =>
+			ioClient.attachEvent({
+				eventName: `conversation:${c.conversation.id}:updateMembers`,
+				key: `conversation:${c.conversation.id}:groupName:updateMembersData`,
+				callback: (data: {
+					type: string;
+					conversationId: string;
+					members: MemberWithProfileImage[];
+				}) => {
+					if (data.type == 'add') {
+						const { conversation } = $conversationsStore.data?.find(
+							(c) => c.conversation.id == data.conversationId
+						)!;
+
+						for (let i = 0; i < conversation.members.length; i++) {
+							conversation.members[i].currentlyMember = true;
+						}
+
+						const updatedMembers = [...conversation.members, ...data.members].filter(
+							(obj1, i, arr) => arr.findIndex((obj2) => obj2.id == obj1.id) == i
+						);
+
+						$conversationsStore.data = $conversationsStore.data?.map((c) => {
+							if (c.conversation.id == conversation.id) {
+								c.conversation.members = updatedMembers;
+							}
+							return c;
+						});
+					}
 				}
 			})
 		);

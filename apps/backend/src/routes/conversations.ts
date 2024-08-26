@@ -14,7 +14,7 @@ import {
     queryConversationById,
     queryConversationWithImage,
     queryMemberById,
-    queryMemberNameById,
+    queryMemberByUserId,
     queryUserByIdWithProfileImageWithoutPassword,
     queryUserConversations,
     updateConversation,
@@ -29,6 +29,7 @@ import {
     createGroupSchema,
     editConversationImage,
     editConversationName,
+    leaveConversation,
 } from "../auth/form_schemas";
 import type { HonoSocketServer } from "../socket-helpers";
 
@@ -449,13 +450,11 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                         if (e && e.currentlyMember) {
                             return;
                         } else if (e && !e.currentlyMember) {
-                            console.log(e);
                             return updateIsCurrentMember({
                                 memberId: e.id,
                                 isCurrentMember: true,
                             });
                         } else {
-                            console.log(e);
                             return insertConversationMember.get({
                                 id: generateId(),
                                 conversationId,
@@ -472,13 +471,15 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                 insertedMembers = insertedMembers.filter(
                     (m) => typeof m != "undefined"
                 );
-                const insertedMembersNames = (
-                    await Promise.all(
-                        insertedMembers.map((m) =>
-                            queryMemberNameById.get({ userId: m?.userId })
-                        )
+                const insertedMembersData = await Promise.all(
+                    insertedMembers.map((m) =>
+                        queryMemberByUserId.get({ userId: m?.userId })
                     )
-                ).map((u) => u?.user.fullName);
+                );
+
+                const insertedMembersNames = insertedMembersData.map(
+                    (m) => m?.user.fullName
+                );
 
                 const addedBy = await queryMemberById.get({
                     memberId: reqBody.addedById,
@@ -510,6 +511,7 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                     (m) => `user:${m?.userId}:newConversation`
                 );
                 const messageEvent = `conversation:${conversationId}:messages`;
+                const updateMembersKey = `conversation:${conversationId}:updateMembers`;
 
                 newConversaionKeys.forEach((eventKey) =>
                     io.emit(eventKey, {
@@ -525,7 +527,50 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                     },
                 });
 
+                io.emit(updateMembersKey, {
+                    type: "add",
+                    conversationId,
+                    members: insertedMembersData,
+                });
+
                 return c.json({ success: true });
+            } catch (error) {
+                console.log(c.req.path, error);
+                return c.json(
+                    {
+                        success: false,
+                    },
+                    500
+                );
+            }
+        }
+    )
+    .delete(
+        "/leave/:conversationId",
+        zValidator("json", leaveConversation),
+        async (c) => {
+            try {
+                const { conversationId } = c.req.param();
+                const reqBody = c.req.valid("json");
+                const io = c.get("io");
+
+                // const memberData =
+
+                const updatedMember = await updateIsCurrentMember({
+                    isCurrentMember: false,
+                    memberId: reqBody.memberId,
+                });
+
+                const removeEventKey = `conversation:${conversationId}:leave`;
+
+                io.emit(removeEventKey, {
+                    conversationId,
+                    memberId: reqBody.memberId,
+                });
+
+                return c.json({
+                    success: true,
+                });
             } catch (error) {
                 console.log(c.req.path, error);
                 return c.json(

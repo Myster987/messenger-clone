@@ -255,20 +255,6 @@ export const checkIfUserInConversation = db
     )
     .prepare();
 
-export const queryMemberNameById = db.query.conversationMembers
-    .findFirst({
-        where: eq(schema.conversationMembers.userId, sql.placeholder("userId")),
-        columns: {},
-        with: {
-            user: {
-                columns: {
-                    fullName: true,
-                },
-            },
-        },
-    })
-    .prepare();
-
 export const insertConversationMember = db
     .insert(schema.conversationMembers)
     .values({
@@ -384,6 +370,19 @@ export const queryMemberById = db.query.conversationMembers
         where: eq(schema.conversationMembers.id, sql.placeholder("memberId")),
         with: {
             user: true,
+        },
+    })
+    .prepare();
+
+export const queryMemberByUserId = db.query.conversationMembers
+    .findFirst({
+        where: eq(schema.conversationMembers.userId, sql.placeholder("userId")),
+        with: {
+            user: {
+                with: {
+                    profileImage: true,
+                },
+            },
         },
     })
     .prepare();

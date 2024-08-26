@@ -26,6 +26,7 @@
 				toast.error(form.message.text);
 			}
 			dialogIsOpen = false;
+			selectedUsers = [];
 		},
 		invalidateAll: false
 	});
