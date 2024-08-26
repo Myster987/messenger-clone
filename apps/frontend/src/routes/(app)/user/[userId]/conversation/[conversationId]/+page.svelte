@@ -342,6 +342,7 @@
 								{/each}
 								<li>
 									<AddNewMembersToGroup
+										{currentMember}
 										{addMembersToGroupFormObject}
 										currentConversation={conversationData}
 									/>

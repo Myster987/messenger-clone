@@ -241,17 +241,30 @@ export const updateConversationLatestMessage = (
         .returning()
         .get();
 
-export const checkIfUserInConversation = db.query.conversationMembers
-    .findFirst({
-        where: and(
+export const checkIfUserInConversation = db
+    .select()
+    .from(schema.conversationMembers)
+    .where(
+        and(
             eq(
                 schema.conversationMembers.conversationId,
                 sql.placeholder("conversationId")
             ),
             eq(schema.conversationMembers.userId, sql.placeholder("userId"))
-        ),
+        )
+    )
+    .prepare();
+
+export const queryMemberNameById = db.query.conversationMembers
+    .findFirst({
+        where: eq(schema.conversationMembers.userId, sql.placeholder("userId")),
+        columns: {},
         with: {
-            user: true,
+            user: {
+                columns: {
+                    fullName: true,
+                },
+            },
         },
     })
     .prepare();

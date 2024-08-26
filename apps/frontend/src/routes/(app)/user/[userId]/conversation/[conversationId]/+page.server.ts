@@ -256,12 +256,9 @@ export const actions: Actions = {
 		const form = await superValidate(request, zod(addMembersToGroup));
 
 		if (!form.valid) {
-			return fail(400, { form });
+			return message(form, { text: 'Invalid data.', success: false });
 		}
-
 		const formData = form.data;
-
-		console.log(formData);
 
 		const res = await honoClient.api.conversations.members[':conversationId'].$put({
 			param: {
@@ -273,9 +270,9 @@ export const actions: Actions = {
 		const { success } = await res.json();
 
 		if (!success) {
-			return fail(res.status, { form, success });
+			return message(form, { text: 'Something went wrong', success }, { status: 400 });
 		}
 
-		return { form, success };
+		return message(form, { text: 'New member(s) successfully added.', success });
 	}
 };

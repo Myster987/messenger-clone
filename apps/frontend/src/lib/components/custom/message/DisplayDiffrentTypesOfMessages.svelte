@@ -23,7 +23,7 @@
 				You changed group name {message?.body?.split(' ').slice(1).join(' ')}.
 			</p>
 		</div>
-	{:else if message?.type == 'group-image-change'}
+	{:else if message?.type == 'group-image-change' || message?.type == 'group-add-members'}
 		<div class={cn('flex justify-center px-8', containerClass)}>
 			<p class={cn('text-muted-foreground text-center text-sm', contentClass)}>
 				{message.body}
@@ -44,7 +44,7 @@
 			{message?.body?.split(' ')[0]} changed group name to {message?.body?.split(' ')[2]}.
 		</p>
 	</div>
-{:else if message?.type == 'group-image-change'}
+{:else if message?.type == 'group-image-change' || message?.type == 'group-add-members'}
 	<div class={cn('flex justify-center px-8', containerClass)}>
 		<p class={cn('text-muted-foreground text-center text-sm', contentClass)}>
 			{message.body}

@@ -14,6 +14,7 @@ import {
     queryConversationById,
     queryConversationWithImage,
     queryMemberById,
+    queryMemberNameById,
     queryUserByIdWithProfileImageWithoutPassword,
     queryUserConversations,
     updateConversation,
@@ -448,11 +449,13 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                         if (e && e.currentlyMember) {
                             return;
                         } else if (e && !e.currentlyMember) {
+                            console.log(e);
                             return updateIsCurrentMember({
                                 memberId: e.id,
                                 isCurrentMember: true,
                             });
                         } else {
+                            console.log(e);
                             return insertConversationMember.get({
                                 id: generateId(),
                                 conversationId,
@@ -469,9 +472,13 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                 insertedMembers = insertedMembers.filter(
                     (m) => typeof m != "undefined"
                 );
-                const insertedMembersNames = exists.filter((e) =>
-                    insertedMembers.find((m) => m?.id == e?.id)
-                );
+                const insertedMembersNames = (
+                    await Promise.all(
+                        insertedMembers.map((m) =>
+                            queryMemberNameById.get({ userId: m?.userId })
+                        )
+                    )
+                ).map((u) => u?.user.fullName);
 
                 const addedBy = await queryMemberById.get({
                     memberId: reqBody.addedById,

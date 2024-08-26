@@ -3,6 +3,7 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { addMembersToGroup } from '@/auth/form_schemas';
+	import { toast } from 'svelte-sonner';
 	import { Check, LoaderCircle, UserRoundPlus, X } from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,13 +11,23 @@
 	import * as Command from '@/components/ui/command';
 	import * as Dialog from '@/components/ui/dialog';
 	import * as Form from '@/components/ui/form';
-	import type { StoreConversation } from '@/types';
+	import type { MemberWithProfileImage, StoreConversation } from '@/types';
 
+	export let currentMember: MemberWithProfileImage;
 	export let currentConversation: StoreConversation['conversation'];
 	export let addMembersToGroupFormObject: SuperValidated<Infer<typeof addMembersToGroup>>;
 
 	const form = superForm(addMembersToGroupFormObject, {
-		validators: zodClient(addMembersToGroup)
+		validators: zodClient(addMembersToGroup),
+		onUpdated({ form }) {
+			if (form.message.success) {
+				toast.success(form.message.text);
+			} else {
+				toast.error(form.message.text);
+			}
+			dialogIsOpen = false;
+		},
+		invalidateAll: false
 	});
 
 	const { form: formData, enhance } = form;
@@ -34,6 +45,7 @@
 	let currentInput = '';
 	let resolvedSuggestions = true;
 	let suggestDelay: number;
+	let dialogIsOpen = false;
 
 	const searchUsersByName = async () => {
 		const res = await $honoClientStore.api.users.by_full_name[':fullName'].$get({
@@ -95,10 +107,12 @@
 	}
 	let selectedUsers: SearchResult[] = [];
 
+	$: $formData.addedById = currentMember.id;
 	$: $formData.newUserIds = selectedUsers.map((s) => s.id);
 </script>
 
 <Dialog.Root
+	bind:open={dialogIsOpen}
 	onOpenChange={(open) => {
 		if (!open) {
 			selectedUsers = [];
@@ -223,6 +237,12 @@
 			method="post"
 			use:enhance
 		>
+			<Form.Field {form} name="addedById">
+				<Form.Control let:attrs>
+					<input type="text" name={attrs.name} value={currentMember.id} hidden />
+				</Form.Control>
+			</Form.Field>
+
 			<Form.Field {form} name="newUserIds">
 				<Form.Control let:attrs>
 					{#each $formData.newUserIds as userId}
