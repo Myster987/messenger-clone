@@ -554,16 +554,46 @@ export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
                 const reqBody = c.req.valid("json");
                 const io = c.get("io");
 
-                // const memberData =
+                const memberData = await queryMemberById.get({
+                    memberId: reqBody.memberId,
+                });
 
-                const updatedMember = await updateIsCurrentMember({
+                await updateIsCurrentMember({
                     isCurrentMember: false,
                     memberId: reqBody.memberId,
                 });
 
+                const insertedMessage = await insertMessageWithType.get({
+                    id: generateId(),
+                    senderId: reqBody.memberId,
+                    body: `${memberData?.user.fullName} left the group.`,
+                    type: "group-member-leave",
+                });
+
+                await updateConversationLatestMessage(
+                    conversationId,
+                    insertedMessage.id
+                );
+
+                const messageEventKey = `conversation:${conversationId}:messages`;
                 const removeEventKey = `conversation:${conversationId}:leave`;
+                const updateMembersKey = `conversation:${conversationId}:updateMembers`;
+
+                io.emit(messageEventKey, {
+                    type: "message",
+                    body: {
+                        message: insertedMessage,
+                        conversationMember: memberData,
+                    },
+                });
 
                 io.emit(removeEventKey, {
+                    conversationId,
+                    memberId: reqBody.memberId,
+                });
+
+                io.emit(updateMembersKey, {
+                    type: "leave",
                     conversationId,
                     memberId: reqBody.memberId,
                 });
