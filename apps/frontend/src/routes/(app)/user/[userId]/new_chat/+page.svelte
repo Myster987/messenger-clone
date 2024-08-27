@@ -3,7 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import { LoaderCircle } from 'lucide-svelte';
-	import { honoClientStore} from "@/stores"
+	import { honoClientStore, userStore } from '@/stores';
 	import { ProfileImage } from '@/components/custom/profile_image';
 	import * as Card from '@/components/ui/card';
 	import * as Command from '@/components/ui/command';
@@ -36,7 +36,7 @@
 			return;
 		}
 
-		searchResults = data;
+		searchResults = data.filter(u => u.id != $userStore?.id);
 	};
 
 	const handleDelaySuggestion = () => {
@@ -69,7 +69,7 @@
 			{:else if searchResults.length > 0}
 				{#each searchResults as user}
 					<li
-						class="relative flex cursor-default select-none items-center rounded-sm text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+						class="hover:bg-accent hover:text-accent-foreground relative flex cursor-default select-none items-center rounded-sm text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
 					>
 						<form
 							method="post"

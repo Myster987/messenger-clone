@@ -22,6 +22,10 @@ export type SocketMessage = Prettify<{
 	body: MessageWithMember;
 }>;
 
+export type SocketUpdateMembers = {
+	conversationId: string;
+} & ({ type: 'add'; members: MemberWithProfileImage[] } | { type: 'leave'; memberId: string });
+
 export type MemberWithProfileImage = InferQueryModel<
 	'conversationMembers',
 	{

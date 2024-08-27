@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { message, superValidate, withFiles } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { addMembersToGroup, imageInputSchema, messageInputSchema } from '@/auth/form_schemas';
@@ -274,5 +274,24 @@ export const actions: Actions = {
 		}
 
 		return message(form, { text: 'New member(s) successfully added.', success });
+	},
+	leaveGroup: async ({ request, params: { conversationId, userId }, locals: { honoClient } }) => {
+		const formData = Object.fromEntries(await request.formData()) as unknown as {
+			memberId: string;
+		};
+
+		const res = await honoClient.api.conversations.leave[':conversationId'].$delete({
+			param: {
+				conversationId
+			},
+			json: formData
+		});
+
+		const { success } = await res.json();
+
+		if (!success) {
+			return fail(res.status, { success });
+		}
+		redirect(302, `/user/${userId}`);
 	}
 };

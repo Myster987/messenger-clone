@@ -8,7 +8,8 @@
 	import { Sidebar } from '@/components/custom/sidebar';
 	import { ChatsCard } from '@/components/custom/cards';
 	import type { LayoutData } from './$types';
-	import type { MemberWithProfileImage, SocketMessage, StoreConversation } from '@/types';
+	import type { SocketMessage, SocketUpdateMembers, StoreConversation } from '@/types';
+	import { beforeNavigate } from '$app/navigation';
 
 	export let data: LayoutData;
 
@@ -145,18 +146,15 @@
 			ioClient.attachEvent({
 				eventName: `conversation:${c.conversation.id}:updateMembers`,
 				key: `conversation:${c.conversation.id}:groupName:updateMembersData`,
-				callback: (data: {
-					type: string;
-					conversationId: string;
-					members: MemberWithProfileImage[];
-				}) => {
+				callback: (data: SocketUpdateMembers) => {
 					if (data.type == 'add') {
 						const { conversation } = $conversationsStore.data?.find(
 							(c) => c.conversation.id == data.conversationId
 						)!;
 
 						for (let i = 0; i < conversation.members.length; i++) {
-							conversation.members[i].currentlyMember = true;
+							if (data.members.find((m) => m.id == conversation.members[i].id))
+								conversation.members[i].currentlyMember = true;
 						}
 
 						const updatedMembers = [...conversation.members, ...data.members].filter(
@@ -166,6 +164,18 @@
 						$conversationsStore.data = $conversationsStore.data?.map((c) => {
 							if (c.conversation.id == conversation.id) {
 								c.conversation.members = updatedMembers;
+							}
+							return c;
+						});
+					} else if (data.type == 'leave') {
+						$conversationsStore.data = $conversationsStore.data?.map((c) => {
+							if (c.conversation.id == data.conversationId) {
+								c.conversation.members = c.conversation.members.map((m) => {
+									if (m.id == data.memberId) {
+										m.currentlyMember = false;
+									}
+									return m;
+								});
 							}
 							return c;
 						});
@@ -207,6 +217,42 @@
 			setOfflineStatus($userStore?.id || '');
 		}
 	}
+
+	beforeNavigate((navigationEvent) => {
+		if (navigationEvent.to?.url.pathname == '/sign_in') {
+			console.log('clean up');
+			$conversationsStore.data?.forEach((c) => {
+				ioClient.deleteListenerByKey({
+					eventName: `user:${$userStore?.id}:newConversation`,
+					key: `user:${$userStore?.id}:newConversation`
+				});
+				ioClient.deleteListenerByKey({
+					eventName: `conversation:${c.conversation.id}:messages`,
+					key: `conversation:${c.conversation.id}:updateLatestMessage`
+				});
+				ioClient.deleteListenerByKey({
+					eventName: `conversation:${c.conversation.id}:seenMessage`,
+					key: `conversation:${c.conversation.id}:seenMessageUpdateConversationsStore`
+				});
+				ioClient.deleteListenerByKey({
+					eventName: `conversation:${c.conversation.id}:nicks`,
+					key: `conversation:${c.conversation.id}:nicks`
+				});
+				ioClient.deleteListenerByKey({
+					eventName: `conversation:${c.conversation.id}:groupName`,
+					key: `conversation:${c.conversation.id}:groupName:updateConversationName`
+				});
+				ioClient.deleteListenerByKey({
+					eventName: `conversation:${c.conversation.id}:groupImage`,
+					key: `conversation:${c.conversation.id}:groupName:updateConversationImage`
+				});
+				ioClient.deleteListenerByKey({
+					eventName: `conversation:${c.conversation.id}:updateMembers`,
+					key: `conversation:${c.conversation.id}:groupName:updateMembersData`
+				});
+			});
+		}
+	});
 </script>
 
 <div class="flex h-full gap-4 p-4">

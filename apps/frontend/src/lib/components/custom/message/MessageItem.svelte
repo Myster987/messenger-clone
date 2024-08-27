@@ -35,7 +35,11 @@
 
 <div class="group flex flex-col gap-1">
 	{#if data.message.type != 'message'}
-		<DisplayDiffrentTypesOfMessages {isCurrentUser} message={data.message} />
+		<div class="flex justify-center px-8">
+			<p class="text-muted-foreground text-center text-sm">
+				<DisplayDiffrentTypesOfMessages {isCurrentUser} message={data.message} />
+			</p>
+		</div>
 	{:else if isCurrentUser}
 		<div class="flex flex-row-reverse items-center gap-2">
 			{#if isDeleted}

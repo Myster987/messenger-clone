@@ -19,6 +19,7 @@
 	} from '@/components/custom/dialog';
 	import { ProfileImage } from '@/components/custom/profile_image';
 	import { DisplayConversationImage, DisplayConversationName } from '@/components/custom/other';
+	import { LeaveGroupButton } from '@/components/custom/buttons';
 	import * as Accordion from '@/components/ui/accordion';
 	import * as Card from '@/components/ui/card';
 	import type { SocketMessage } from '@/types';
@@ -86,9 +87,7 @@
 		eventName: `${conversationKey}:messages`,
 		key: `${conversationKey}:addNewMessageToArray`,
 		callback: (data: SocketMessage) => {
-			if (data.body.conversationMember.conversationId == conversationId) {
-				$messages.data = [data.body, ...$messages.data];
-			}
+			$messages.data = [data.body, ...$messages.data];
 		}
 	});
 
@@ -159,6 +158,8 @@
 			key: `${conversationKey}:editedMessages`
 		});
 	});
+
+	$: console.log(conversationData?.members);
 </script>
 
 <div class="flex gap-4">
@@ -350,6 +351,10 @@
 							</ul>
 						</Accordion.Content>
 					</Accordion.Item>
+
+					<div>
+						<LeaveGroupButton {currentMember} />
+					</div>
 				{/if}
 			</Accordion.Root>
 		</ScrollArea>
