@@ -62,7 +62,7 @@
 			return;
 		}
 
-		searchResults = data;
+		searchResults = data.filter((u) => u.id != $userStore?.id);
 	};
 
 	const handleDelaySuggestion = () => {
@@ -92,7 +92,9 @@
 			for (const member of conversation.members) {
 				if (
 					member.userId != $userStore?.id &&
-					typeof currentConversation.members.find((c) => c.userId == member.userId) == 'undefined'
+					typeof currentConversation.members.find(
+						(c) => c.userId == member.userId && c.currentlyMember
+					) == 'undefined'
 				) {
 					suggestions.push({
 						id: member.userId,

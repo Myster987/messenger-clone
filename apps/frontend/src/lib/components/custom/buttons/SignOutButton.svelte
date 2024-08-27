@@ -4,6 +4,7 @@
 	import { toast } from 'svelte-sonner';
 	import { LogOut } from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
+	import { conversationsStore } from '@/stores';
 </script>
 
 <form
@@ -17,7 +18,8 @@
 				toast.error('Something went wrong.');
 			} else if (result.type == 'redirect') {
 				toast.success('Successfully signed out.');
-				goto(result.location);
+				await goto(result.location);
+				$conversationsStore.data = [];
 			}
 		};
 	}}
