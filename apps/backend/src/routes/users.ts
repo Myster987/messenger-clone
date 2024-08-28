@@ -46,8 +46,6 @@ export const usersRoute = new Hono()
         ":userId",
         zValidator("form", apiEditUserSchema, (result, c) => {
             if (!result.success) {
-                console.log(result);
-
                 return c.json(
                     {
                         success: false,

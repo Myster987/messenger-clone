@@ -220,7 +220,6 @@
 
 	beforeNavigate((navigationEvent) => {
 		if (navigationEvent.to?.url.pathname == '/sign_in') {
-			console.log('clean up');
 			$conversationsStore.data?.forEach((c) => {
 				ioClient.deleteListenerByKey({
 					eventName: `user:${$userStore?.id}:newConversation`,

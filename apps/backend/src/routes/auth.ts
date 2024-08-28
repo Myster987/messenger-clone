@@ -17,7 +17,6 @@ export const authRoute = new Hono().post(
     "/user",
     zValidator("form", postUserSchema, (result, c) => {
         if (!result.success) {
-            console.log(result.data);
             return c.json(
                 {
                     success: false,

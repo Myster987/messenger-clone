@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
 import { serve } from "@hono/node-server";
 import { Server } from "socket.io";
 import { protect } from "./utils";
@@ -37,7 +36,6 @@ export const api = new Hono<Env>()
             ],
         })
     )
-    .use(logger())
     .use(protect)
     .use(async (c, next) => {
         c.set("io", (globalThis as ExtendedGlobal)[GlobalThisWSS]);
