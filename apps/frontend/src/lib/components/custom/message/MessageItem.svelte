@@ -48,7 +48,9 @@
 				</p>
 			{:else}
 				{#if isText}
-					<p class="bg-primary rounded-full px-3 py-1 font-light text-white">
+					<p
+						class="bg-primary max-w-[75%] hyphens-auto break-all rounded-2xl px-3 py-1 font-light text-white"
+					>
 						{data.message.body}
 					</p>
 				{:else}
@@ -224,7 +226,7 @@
 		</div>
 	{:else}
 		<div class="flex gap-2">
-			<div class="flex {isText ? 'items-center' : 'items-end'}">
+			<div class="flex items-end">
 				{#if showProfileImage}
 					<ProfileImage
 						imageUrl={senderProfile?.user.profileImage?.imageUrl}
@@ -241,7 +243,9 @@
 				</p>
 			{:else}
 				{#if isText}
-					<p class="bg-secondary rounded-full px-3 py-1 font-light">
+					<p
+						class="bg-secondary word max-w-[75%] hyphens-auto break-all rounded-3xl px-3 py-1 font-light"
+					>
 						{data.message.body}
 					</p>
 				{:else}

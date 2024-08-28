@@ -255,10 +255,10 @@
 	});
 </script>
 
-<div class="flex h-full gap-4 p-4">
+<div class="flex h-full lg:gap-4 lg:p-4">
 	<Sidebar />
 	<ChatsCard />
-	<div class="flex-grow">
+	<div class="relative flex-grow">
 		<slot />
 	</div>
 </div>

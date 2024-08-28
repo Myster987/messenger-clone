@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { UserRoundPlus } from 'lucide-svelte';
-	import { conversationsStore, userStore } from '@/stores';
+	import { conversationsStore, userStore, windowWidth } from '@/stores';
 	import { Button } from '@/components/ui/button';
 	import { Skeleton } from '@/components/ui/skeleton';
 	import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,6 +14,7 @@
 	import * as Card from '@/components/ui/card';
 	import * as Command from '@/components/ui/command';
 	import * as Tooltip from '@/components/ui/tooltip';
+	import { MobileSidebar } from '@/components/custom/sidebar';
 	import type { StoreConversation } from '@/types';
 
 	let inputValue = '';
@@ -31,12 +33,22 @@
 							el.user.fullName.toLowerCase().includes(inputValue.toLowerCase()))
 				)
 		) || [];
+
+	$: isHomePage = $page.route.id == '/(app)/user/[userId]';
 </script>
 
-<Card.Root class="flex w-[360px] flex-col">
+<Card.Root
+	class="{!isHomePage &&
+		'hidden'} w-full flex-col rounded-none border-none lg:flex lg:w-[360px] lg:rounded-lg lg:border lg:border-solid"
+>
 	<Card.Header class="flex flex-col gap-1 p-4 pb-0">
 		<div class="flex justify-between">
-			<h1 class="flex items-center text-2xl font-semibold">Chats</h1>
+			<div class="flex gap-4">
+				{#if $windowWidth < 1024}
+					<MobileSidebar />
+				{/if}
+				<h1 class="flex items-center text-2xl font-semibold">Chats</h1>
+			</div>
 			<div class="flex gap-2">
 				<a href="/user/{$userStore?.id}/new_chat">
 					<Tooltip.Root>

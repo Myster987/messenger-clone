@@ -6,9 +6,9 @@
 	import { DisplayConversationImage, DisplayConversationName } from '../other';
 	import IntersectionObserver from 'svelte-intersection-observer';
 	import MessageItem from './MessageItem.svelte';
-	import type { Member, MemberWithProfileImage, MessageWithMember } from '@/types';
-	import type { SelectConversationImages } from 'db/schema';
 	import type { Writable } from 'svelte/store';
+	import type { SelectConversationImages } from 'db/schema';
+	import type { Member, MemberWithProfileImage, MessageWithMember } from '@/types';
 
 	export let messages: Writable<{
 		data: MessageWithMember[];
@@ -76,7 +76,7 @@
 			if (!updateTimeout) {
 				updateTimeout = window.setTimeout(() => updateSeenMessages(newestMessage), 100);
 			}
-			firstElement?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+			firstElement?.scrollIntoView(false);
 		}
 	}
 	$: if (firstElement) {
@@ -93,7 +93,7 @@
 	});
 </script>
 
-<ul class="flex h-full flex-1 flex-col-reverse px-5">
+<ul class="flex h-full flex-1 flex-col-reverse px-4">
 	{#each $messages.data as message, i (message.message.id)}
 		{#if i == 0}
 			<li
@@ -104,7 +104,7 @@
 				<MessageItem
 					data={message}
 					showProfileImage={$messages.data[i - 1]?.conversationMember.id !=
-						message.conversationMember.id}
+						message.conversationMember.id || $messages.data[i - 1].message.type != 'message'}
 				>
 					<div class="flex justify-end gap-0.5">
 						{#if messagesSeenByMembers.has(message.message.id)}
@@ -129,7 +129,7 @@
 				<MessageItem
 					data={message}
 					showProfileImage={$messages.data[i - 1]?.conversationMember.id !=
-						message.conversationMember.id}
+						message.conversationMember.id || $messages.data[i - 1].message.type != 'message'}
 				>
 					<div class="flex justify-end gap-0.5">
 						{#if messagesSeenByMembers.has(message.message.id)}

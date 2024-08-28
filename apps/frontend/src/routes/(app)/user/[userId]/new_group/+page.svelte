@@ -8,6 +8,7 @@
 	import * as Select from '@/components/ui/select';
 	import * as Form from '@/components/ui/form';
 	import type { PageData } from './$types';
+	import { BackToLinkButton } from '@/components/custom/buttons';
 
 	export let data: PageData;
 
@@ -31,6 +32,8 @@
 
 	$formData.creatorId = $userStore?.id!;
 </script>
+
+<BackToLinkButton href="/user/{$userStore?.id}" class="absolute left-4 top-4 lg:hidden" />
 
 <Card.Root class="flex h-full items-center justify-center">
 	<div>

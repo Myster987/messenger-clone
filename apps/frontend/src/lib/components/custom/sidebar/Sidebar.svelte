@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { MessageCircle, UsersRound, PanelLeft } from 'lucide-svelte';
-	import { userStore } from '@/stores';
+	import { userStore, windowWidth } from '@/stores';
 	import { Button } from '@/components/ui/button';
 	import { ThemeButton, UserProfileButton } from '@/components/custom/buttons';
 	import * as Tooltip from '@/components/ui/tooltip';
 
 	let expanded = false;
+
+	$: if ($windowWidth < 1280) {
+		expanded = false;
+	}
 </script>
 
-<div class="flex h-full {expanded ? 'w-56' : 'w-11'} flex-col justify-between">
+<div class="hidden h-full lg:flex {expanded ? 'w-56' : 'w-11'} flex-col justify-between">
 	<div class="flex flex-col gap-1">
 		<div>
 			<a href="/user/{$userStore?.id}">
@@ -63,7 +67,7 @@
 		<div class="grow">
 			<UserProfileButton {expanded} />
 		</div>
-		<div>
+		<div class="hidden xl:block">
 			<Button variant="ghost" size="icon" on:click={() => (expanded = !expanded)}
 				><PanelLeft /></Button
 			>

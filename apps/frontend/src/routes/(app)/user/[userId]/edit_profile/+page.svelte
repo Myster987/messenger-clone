@@ -9,6 +9,7 @@
 	import { Input } from '@/components/ui/input';
 	import { Separator } from '@/components/ui/separator';
 	import { Skeleton } from '@/components/ui/skeleton';
+	import { BackToLinkButton } from '@/components/custom/buttons';
 	import { ProfileImage } from '@/components/custom/profile_image';
 	import * as Card from '@/components/ui/card';
 	import * as Form from '@/components/ui/form';
@@ -66,8 +67,12 @@
 	onMount(() => setDefaults());
 </script>
 
-<Card.Root class="flex h-full w-full justify-center">
-	<div class="">
+<BackToLinkButton href="/user/{$userStore?.id}" class="absolute left-4 top-4 lg:hidden" />
+
+<Card.Root
+	class="flex h-full w-full items-center justify-center border-none lg:border lg:border-solid"
+>
+	<div>
 		<Card.Header>
 			<Card.Title class="text-xl">Edit profile</Card.Title>
 			<Card.Description class="text-base"

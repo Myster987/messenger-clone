@@ -3,7 +3,8 @@
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import { LoaderCircle } from 'lucide-svelte';
-	import { honoClientStore, userStore } from '@/stores';
+	import { honoClientStore, userStore, windowWidth } from '@/stores';
+	import { BackToLinkButton } from '@/components/custom/buttons';
 	import { ProfileImage } from '@/components/custom/profile_image';
 	import * as Card from '@/components/ui/card';
 	import * as Command from '@/components/ui/command';
@@ -36,7 +37,7 @@
 			return;
 		}
 
-		searchResults = data.filter(u => u.id != $userStore?.id);
+		searchResults = data.filter((u) => u.id != $userStore?.id);
 	};
 
 	const handleDelaySuggestion = () => {
@@ -56,10 +57,18 @@
 	}
 </script>
 
-<Card.Root class="h-full w-full">
-	<Card.Content class="p-3">
+<Card.Root class="h-full w-full border-none lg:border lg:border-solid">
+	<Card.Header class="p-3 pb-0 pt-5">
+		<Card.Title class="flex items-center gap-2">
+			{#if $windowWidth < 1024}
+				<BackToLinkButton href="/user/{$userStore?.id}" class="lg:hidden" />
+			{/if}
+			<h2 class="text-xl">New chat</h2>
+		</Card.Title>
+	</Card.Header>
+	<Card.Content class="p-3 pt-0">
 		<Command.Root shouldFilter={false}>
-			<Command.Input bind:value={currentInput} />
+			<Command.Input bind:value={currentInput} placeholder="To:" />
 		</Command.Root>
 		<ul class="p-2">
 			{#if !resolvedSuggestions && currentInput != ''}
