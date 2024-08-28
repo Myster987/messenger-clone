@@ -10,3 +10,5 @@ export const userStore = writable<User | null>(null);
 export const conversationsStore = createAsyncStore<StoreConversation[]>();
 
 export const honoClientStore = writable(createHonoClient(PUBLIC_API_URL, fetchWithCredentials));
+
+export const windowWidth = writable(0);
