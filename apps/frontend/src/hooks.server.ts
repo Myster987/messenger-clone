@@ -10,7 +10,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.apiClient = ky.create({
 		prefixUrl: PUBLIC_API_URL,
 		credentials: 'include',
-		fetch: event.fetch
+		fetch: event.fetch,
+		throwHttpErrors: false
 	});
 
 	if (event.url.pathname.startsWith('/user') && !user) {

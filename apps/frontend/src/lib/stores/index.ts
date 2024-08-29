@@ -11,7 +11,8 @@ export const conversationsStore = createAsyncStore<StoreConversation[]>();
 export const apiClientStore = writable(
 	ky.create({
 		prefixUrl: PUBLIC_API_URL,
-		credentials: 'include'
+		credentials: 'include',
+		throwHttpErrors: false
 	})
 );
 
