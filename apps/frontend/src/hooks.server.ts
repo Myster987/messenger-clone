@@ -9,6 +9,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.session = session;
 	event.locals.apiClient = ky.create({
 		prefixUrl: PUBLIC_API_URL,
+		credentials: 'include',
 		fetch: event.fetch
 	});
 
