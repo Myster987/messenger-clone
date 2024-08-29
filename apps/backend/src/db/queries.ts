@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from ".";
-import * as schema from "db/schema";
+import * as schema from "./schema";
 
 export const checkIfUserExists = db
     .select()

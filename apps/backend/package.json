@@ -3,6 +3,7 @@
     "type": "module",
     "private": "true",
     "scripts": {
+        "start": "tsx --env-file=.env ./src/index.ts",
         "dev": "tsx watch --env-file=.env ./src/index.ts"
     },
     "exports": {
@@ -13,8 +14,8 @@
         "@hono/zod-validator": "0.2.2",
         "@lucia-auth/adapter-drizzle": "^1.1.0",
         "cloudinary": "^2.4.0",
-        "db": "workspace:*",
         "drizzle-orm": "0.32.1",
+        "@libsql/client": "^0.7.0",
         "hono": "^4.5.9",
         "lucia": "^3.2.0",
         "nanoid": "5.0.7",

@@ -1,4 +1,11 @@
 import { SECRET_DATABASE_TOKEN, SECRET_DATABASE_URL } from '$env/static/private';
-import { createDbClient } from 'db';
+import { drizzle } from 'drizzle-orm/libsql';
+import { createClient } from '@libsql/client';
+import * as schema from './schema';
 
-export const db = createDbClient(SECRET_DATABASE_URL, SECRET_DATABASE_TOKEN);
+const client = createClient({
+	url: SECRET_DATABASE_URL,
+	authToken: SECRET_DATABASE_TOKEN
+});
+
+export const db = drizzle(client, { schema });

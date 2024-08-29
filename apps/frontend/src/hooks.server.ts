@@ -1,13 +1,16 @@
 import { PUBLIC_API_URL } from '$env/static/public';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { authenticateUser, handleLoginRedirect } from '@/auth/handlers';
-import { createHonoClient } from 'backend';
+import ky from 'ky';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const { user, session } = await authenticateUser(event.cookies);
 	event.locals.user = user;
 	event.locals.session = session;
-	event.locals.honoClient = createHonoClient(PUBLIC_API_URL, event.fetch);
+	event.locals.apiClient = ky.create({
+		prefixUrl: PUBLIC_API_URL,
+		fetch: event.fetch
+	});
 
 	if (event.url.pathname.startsWith('/user') && !user) {
 		redirect(302, handleLoginRedirect(event));

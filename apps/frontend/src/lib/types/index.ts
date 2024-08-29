@@ -1,5 +1,5 @@
-import type { InferQueryModel } from 'db/types';
-import type { SelectConversationMembers, SelectMessages } from 'db/schema';
+import type { InferQueryModel } from '@/db/types';
+import type { SelectConversationMembers, SelectMessages } from '@/db/schema';
 
 export type Prettify<T> = {
 	[K in keyof T]: T[K] extends object ? Prettify<T[K]> : T[K];
@@ -69,3 +69,7 @@ export type StoreConversation = InferQueryModel<
 		};
 	}
 >;
+
+export type DefaultApiResponse = { success: boolean };
+
+export type ApiResponse<T extends Record<string, unknown>> = DefaultApiResponse & T;

@@ -3,12 +3,12 @@
 	import { browser } from '$app/environment';
 	import { io } from 'socket.io-client';
 	import { ioClient } from '@/socket';
-	import { conversationsStore, userStore, honoClientStore } from '@/stores';
+	import { conversationsStore, userStore, apiClientStore } from '@/stores';
 	import { setOfflineStatus, setOnlineStatus } from '@/auth/status';
 	import { Sidebar } from '@/components/custom/sidebar';
 	import { ChatsCard } from '@/components/custom/cards';
 	import type { LayoutData } from './$types';
-	import type { SocketMessage, SocketUpdateMembers, StoreConversation } from '@/types';
+	import type { ApiResponse, SocketMessage, SocketUpdateMembers, StoreConversation } from '@/types';
 	import { beforeNavigate } from '$app/navigation';
 
 	export let data: LayoutData;
@@ -186,11 +186,8 @@
 	}
 
 	const fetchConversations = async (userId: string) => {
-		const res = await $honoClientStore.api.conversations.user[':userId'].$get({
-			param: { userId }
-		});
-
-		const { data } = await res.json();
+		const res = await $apiClientStore.get(`api/conversations/user/${userId}`);
+		const { data } = await res.json<ApiResponse<{ data: StoreConversation[] }>>();
 		return data || [];
 	};
 

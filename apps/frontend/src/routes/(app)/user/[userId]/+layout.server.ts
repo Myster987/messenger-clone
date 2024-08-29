@@ -1,12 +1,11 @@
+import type { ApiResponse, StoreConversation } from '@/types';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals: { honoClient }, params: { userId } }) => {
+export const load: LayoutServerLoad = async ({ locals: { apiClient }, params: { userId } }) => {
 	const fetchConversations = async () => {
-		const res = await honoClient.api.conversations.user[':userId'].$get({
-			param: { userId }
-		});
+		const res = await apiClient.get(`api/conversations/user/${userId}`);
 
-		const { data } = await res.json();
+		const { data } = await res.json<ApiResponse<{ data: StoreConversation[] }>>();
 		return data || [];
 	};
 

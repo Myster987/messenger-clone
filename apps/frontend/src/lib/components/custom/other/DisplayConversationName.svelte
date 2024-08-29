@@ -1,21 +1,8 @@
 <script lang="ts">
 	import { userStore } from '@/stores';
+	import type { MemberWithProfileImage } from '@/types';
 
-	export let members: {
-		id: string;
-		createdAt: string;
-		userId: string;
-		conversationId: string;
-		nick: string | null;
-		user: {
-			isOnline: boolean;
-			fullName: string;
-			profileImage: {
-				imageUrl: string;
-				userId: string;
-			} | null;
-		};
-	}[];
+	export let members: MemberWithProfileImage[];
 
 	export let isGroup: boolean = false;
 	export let groupName: string | undefined;

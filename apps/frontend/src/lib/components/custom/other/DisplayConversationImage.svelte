@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { userStore } from '@/stores';
 	import * as Avatar from '@/components/ui/avatar';
-	import { type SelectConversationImages, type SelectProfileImages } from 'db/schema';
+	import { type SelectConversationImages, type SelectProfileImages } from '@/db/schema';
 
 	export let isGroup: boolean;
 	export let conversationName: string;

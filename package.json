@@ -10,6 +10,7 @@
         "db:studio": "cd ./apps/db && pnpm run db:studio",
         "db:migrate": "cd ./apps/db && pnpm run db:migrate",
         "frontend:dev": "cd ./apps/frontend && pnpm run dev",
+        "frontend:build": "cd ./apps/frontend && pnpm run build",
         "backend:dev": "cd ./apps/backend && pnpm run dev"
     }
 }

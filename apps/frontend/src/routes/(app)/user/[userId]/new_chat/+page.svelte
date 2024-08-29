@@ -3,11 +3,12 @@
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import { LoaderCircle } from 'lucide-svelte';
-	import { honoClientStore, userStore, windowWidth } from '@/stores';
+	import { apiClientStore, userStore, windowWidth } from '@/stores';
 	import { BackToLinkButton } from '@/components/custom/buttons';
 	import { ProfileImage } from '@/components/custom/profile_image';
 	import * as Card from '@/components/ui/card';
 	import * as Command from '@/components/ui/command';
+	import type { ApiResponse } from '@/types';
 
 	type SearchResult = {
 		id: string;
@@ -24,13 +25,9 @@
 	let suggestDelay: number;
 
 	const searchUsersByName = async () => {
-		const res = await $honoClientStore.api.users.by_full_name[':fullName'].$get({
-			param: {
-				fullName: currentInput
-			}
-		});
+		const res = await $apiClientStore.get(`api/users/by_full_name/${currentInput}`);
 
-		const { data } = await res.json();
+		const { data } = await res.json<ApiResponse<{ data: SearchResult[] }>>();
 		resolvedSuggestions = true;
 
 		if (!data) {

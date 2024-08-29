@@ -11,7 +11,7 @@ import {
     updateUserStatusToOnlineById,
     updateUserStatusToOfflineById,
 } from "../db/queries";
-import * as schema from "db/schema";
+import * as schema from "../db/schema";
 
 export const usersRoute = new Hono()
     .patch(

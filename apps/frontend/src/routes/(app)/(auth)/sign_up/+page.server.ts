@@ -4,7 +4,9 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { hash } from '@node-rs/argon2';
 import { signUpFormSchema } from '@/auth/form_schemas';
 import { createUserSession } from '@/auth/handlers';
+import { createFormDataFromObject } from '@/utils';
 import type { Actions, PageServerLoad } from './$types';
+import type { ApiResponse } from '@/types';
 
 export const load: PageServerLoad = async () => {
 	return {
@@ -13,7 +15,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, cookies, locals: { honoClient } }) => {
+	default: async ({ request, cookies, locals: { apiClient } }) => {
 		const form = await superValidate(request, zod(signUpFormSchema));
 		if (!form.valid) {
 			return fail(400, {
@@ -24,15 +26,17 @@ export const actions: Actions = {
 
 		const hashedPassword = await hash(formData.password);
 
-		const res = await honoClient.api.auth.user.$post({
-			form: {
-				email: formData.email,
-				password: hashedPassword,
-				fullName: formData.fullName
-			}
+		const body = createFormDataFromObject({
+			email: formData.email,
+			password: hashedPassword,
+			fullName: formData.fullName
 		});
 
-		const { userId } = await res.json();
+		const res = await apiClient.post('api/auth/user', {
+			body
+		});
+
+		const { userId } = await res.json<ApiResponse<{ userId: string | null }>>();
 
 		if (!userId || res.status >= 400) {
 			return fail(res.status, {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { conversationsStore, honoClientStore, userStore } from '@/stores';
+	import { conversationsStore, apiClientStore, userStore } from '@/stores';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { addMembersToGroup } from '@/auth/form_schemas';
@@ -11,7 +11,7 @@
 	import * as Command from '@/components/ui/command';
 	import * as Dialog from '@/components/ui/dialog';
 	import * as Form from '@/components/ui/form';
-	import type { MemberWithProfileImage, StoreConversation } from '@/types';
+	import type { ApiResponse, MemberWithProfileImage, StoreConversation } from '@/types';
 
 	export let currentMember: MemberWithProfileImage;
 	export let currentConversation: StoreConversation['conversation'];
@@ -49,13 +49,9 @@
 	let dialogIsOpen = false;
 
 	const searchUsersByName = async () => {
-		const res = await $honoClientStore.api.users.by_full_name[':fullName'].$get({
-			param: {
-				fullName: currentInput
-			}
-		});
+		const res = await $apiClientStore.get(`api/users/by_full_name/${currentInput}`);
 
-		const { data } = await res.json();
+		const { data } = await res.json<ApiResponse<{ data: SearchResult[] }>>();
 		resolvedSuggestions = true;
 
 		if (!data) {

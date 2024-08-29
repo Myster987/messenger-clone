@@ -1,6 +1,8 @@
 import { message, superValidate, withFiles } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { editUserSchema } from '@/auth/form_schemas';
+import { createFormDataFromObject } from '@/utils';
+import type { DefaultApiResponse } from '@/types';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -10,7 +12,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	editUserFullName: async ({ params, locals: { honoClient }, request }) => {
+	editUserFullName: async ({ params, locals: { apiClient }, request }) => {
 		const form = await superValidate(request, zod(editUserSchema));
 
 		if (!form.valid) {
@@ -19,12 +21,13 @@ export const actions: Actions = {
 
 		const formData = form.data;
 
-		const res = await honoClient.api.users[':userId'].$patch({
-			param: params,
-			form: formData
+		const body = createFormDataFromObject(formData);
+
+		const res = await apiClient.patch(`api/users/${params.userId}`, {
+			body
 		});
 
-		const { success } = await res.json();
+		const { success } = await res.json<DefaultApiResponse>();
 
 		if (!success) {
 			return message(

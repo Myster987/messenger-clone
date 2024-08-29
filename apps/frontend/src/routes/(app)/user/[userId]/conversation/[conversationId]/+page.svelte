@@ -4,7 +4,7 @@
 	import { browser } from '$app/environment';
 	import { writable } from 'svelte/store';
 	import { ioClient } from '@/socket';
-	import { userStore, honoClientStore, conversationsStore, windowWidth } from '@/stores';
+	import { userStore, apiClientStore, conversationsStore, windowWidth } from '@/stores';
 	import { Ellipsis } from 'lucide-svelte';
 	import { Badge } from '@/components/ui/badge';
 	import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@
 		ConversationInfoSheet
 	} from '@/components/custom/cards/conversation-info';
 	import * as Card from '@/components/ui/card';
-	import type { SocketMessage } from '@/types';
+	import type { ApiResponse, MessageWithMember, SocketMessage } from '@/types';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -53,15 +53,14 @@
 
 	const fetchMessages = async (page = '0') => {
 		$messages.isLoading = true;
-		const res = await $honoClientStore.api.socket.messages[':conversationId'].$get({
-			param: {
-				conversationId
-			},
-			query: {
-				page
-			}
-		});
-		const { data: resData, nextPage: nextApiPage } = await res.json();
+		const res = await $apiClientStore.get(
+			`api/socket/messages/${conversationId}?` +
+				new URLSearchParams({
+					page
+				}).toString()
+		);
+		const { data: resData, nextPage: nextApiPage } =
+			await res.json<ApiResponse<{ data: MessageWithMember[]; nextPage: number | null }>>();
 		$messages = {
 			data: [...$messages.data, ...(resData || [])].filter(
 				(obj1, i, arr) => arr.findIndex((obj2) => obj2.message.id == obj1.message.id) == i

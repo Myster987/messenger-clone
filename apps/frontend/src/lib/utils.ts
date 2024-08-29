@@ -3,6 +3,16 @@ import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
 
+export const createFormDataFromObject = (data: Record<string, string | Blob>): FormData => {
+	const formData = new FormData();
+
+	Object.entries(data).forEach(([key, val]) => {
+		formData.append(key, val);
+	});
+
+	return formData;
+};
+
 export const fetchWithCredentials = (
 	input: string | URL | globalThis.Request,
 	init?: RequestInit

@@ -22,7 +22,6 @@ import {
     updateConversationLatestMessage,
     updateIsCurrentMember,
 } from "../db/queries";
-import { SelectConversationImages } from "db/schema";
 import { generateId } from "../auth/generate_id";
 import {
     addMemberToConversation,
@@ -32,6 +31,7 @@ import {
     leaveConversation,
 } from "../auth/form_schemas";
 import type { HonoSocketServer } from "../socket-helpers";
+import type { SelectConversationImages } from "../db/schema";
 
 export const conversationsRoute = new Hono<{ Variables: HonoSocketServer }>()
     .get("/by_id/:conversationId", async (c) => {

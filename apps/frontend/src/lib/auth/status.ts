@@ -1,19 +1,14 @@
 import { onMount } from 'svelte';
 import { get } from 'svelte/store';
-import { honoClientStore } from '@/stores';
+import { apiClientStore } from '@/stores';
 
 export const setOfflineStatus = (userId: string) => {
 	window.addEventListener(
 		'beforeunload',
 		() => {
-			get(honoClientStore).api.users.is_online[':userId'].$patch({
-				param: {
-					userId
-				},
-				query: {
-					online: 'false'
-				}
-			});
+			get(apiClientStore).patch(
+				`api/users/is_online/${userId}?` + new URLSearchParams({ online: 'false' }).toString()
+			);
 		},
 		false
 	);
@@ -21,13 +16,8 @@ export const setOfflineStatus = (userId: string) => {
 
 export const setOnlineStatus = (userId: string) => {
 	onMount(() => {
-		get(honoClientStore).api.users.is_online[':userId'].$patch({
-			param: {
-				userId
-			},
-			query: {
-				online: 'true'
-			}
-		});
+		get(apiClientStore).patch(
+			`api/users/is_online/${userId}?` + new URLSearchParams({ online: 'true' }).toString()
+		);
 	});
 };

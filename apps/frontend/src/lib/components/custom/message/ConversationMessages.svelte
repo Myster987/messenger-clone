@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { LoaderCircle } from 'lucide-svelte';
-	import { honoClientStore, userStore } from '@/stores';
+	import { apiClientStore, userStore } from '@/stores';
 	import { ProfileImage } from '../profile_image';
 	import { DisplayConversationImage, DisplayConversationName } from '../other';
 	import IntersectionObserver from 'svelte-intersection-observer';
 	import MessageItem from './MessageItem.svelte';
 	import type { Writable } from 'svelte/store';
-	import type { SelectConversationImages } from 'db/schema';
+	import type { SelectConversationImages } from '@/db/schema';
 	import type { Member, MemberWithProfileImage, MessageWithMember } from '@/types';
 
 	export let messages: Writable<{
@@ -29,15 +29,15 @@
 	export let fetchMore: () => void;
 
 	const updateSeenMessages = async (newestMessage: MessageWithMember) => {
-		await $honoClientStore.api.socket.messages.seen_message[':conversationId'].$patch({
-			param: {
-				conversationId: currentMember.conversationId
-			},
-			json: {
-				memberId: currentMember.id,
-				lastSeenMessageId: newestMessage.message.id
+		await $apiClientStore.patch(
+			`api/socket/messages/seen_message/${currentMember.conversationId}`,
+			{
+				json: {
+					memberId: currentMember.id,
+					lastSeenMessageId: newestMessage.message.id
+				}
 			}
-		});
+		);
 		updateTimeout = 0;
 	};
 
