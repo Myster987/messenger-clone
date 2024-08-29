@@ -11,6 +11,8 @@
         "db:migrate": "cd ./apps/db && pnpm run db:migrate",
         "frontend:dev": "cd ./apps/frontend && pnpm run dev",
         "frontend:build": "cd ./apps/frontend && pnpm run build",
-        "backend:dev": "cd ./apps/backend && pnpm run dev"
+        "frontend:start": "cd ./apps/frontend && node build/index.js",
+        "backend:dev": "cd ./apps/backend && pnpm run dev",
+        "backend:start": "cd ./apps/backend && pnpm run start"
     }
 }
