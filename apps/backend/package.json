@@ -3,7 +3,7 @@
     "type": "module",
     "private": "true",
     "scripts": {
-        "start": "tsx --env-file=.env ./src/index.ts",
+        "start": "tsx ./src/index.ts",
         "dev": "tsx watch --env-file=.env ./src/index.ts"
     },
     "exports": {
