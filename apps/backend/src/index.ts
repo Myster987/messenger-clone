@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { Server } from "socket.io";
-import { protect } from "./utils";
 import {
     usersRoute,
     authRoute,
@@ -36,7 +35,6 @@ export const api = new Hono<Env>()
             ],
         })
     )
-    .use(protect)
     .use(async (c, next) => {
         c.set("io", (globalThis as ExtendedGlobal)[GlobalThisWSS]);
         await next();
