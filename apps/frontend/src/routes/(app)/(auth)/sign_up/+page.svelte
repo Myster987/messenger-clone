@@ -27,7 +27,7 @@
 	const { form: formData, enhance } = form;
 </script>
 
-<main class="flex min-h-screen items-center justify-center">
+<main class="flex min-h-[100dvh] items-center justify-center">
 	<div class="rounded-xl p-6 sm:w-2/3 sm:border-2 md:w-1/2 lg:w-1/3">
 		<div class="pb-3">
 			<h1 class="text-xl sm:text-2xl">Sign Up</h1>
@@ -73,7 +73,7 @@
 
 			<div class="grid grid-cols-3 items-center gap-1 p-1 text-center">
 				<Separator />
-				<p class="text-xs text-muted-foreground sm:text-sm">If you already have an account</p>
+				<p class="text-muted-foreground text-xs sm:text-sm">If you already have an account</p>
 				<Separator />
 			</div>
 			<a href="/sign_in">

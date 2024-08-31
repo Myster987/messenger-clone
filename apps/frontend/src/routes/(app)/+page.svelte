@@ -5,7 +5,7 @@
 	import MessengerLogo from '@/assets/messenger_logo.png';
 </script>
 
-<div class="flex h-screen items-center justify-center">
+<div class="flex h-[100dvh] items-center justify-center">
 	<div>
 		<div class="grid justify-center pb-2">
 			<div class="aspect-square w-16 justify-self-center">

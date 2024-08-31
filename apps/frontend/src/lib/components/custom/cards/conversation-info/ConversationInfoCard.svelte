@@ -25,7 +25,7 @@
 </script>
 
 <Card.Root class={cn('h-full', className)}>
-	<ScrollArea class="h-screen lg:h-[calc(100vh-32px)]">
+	<ScrollArea class="h-[100dvh] lg:h-[calc(100dvh-32px)]">
 		<Card.Header class="flex items-center gap-1">
 			{#if conversationData}
 				{#if conversationData.isGroup}

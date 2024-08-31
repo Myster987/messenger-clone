@@ -14,6 +14,6 @@
 <ModeWatcher />
 <Toaster />
 
-<div class="h-screen">
+<div class="h-[100dvh]">
 	<slot />
 </div>
