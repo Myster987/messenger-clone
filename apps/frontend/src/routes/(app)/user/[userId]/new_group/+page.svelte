@@ -5,6 +5,7 @@
 	import { userStore, conversationsStore } from '@/stores';
 	import { Input } from '@/components/ui/input';
 	import * as Card from '@/components/ui/card';
+	import * as Command from '@/components/ui/command';
 	import * as Select from '@/components/ui/select';
 	import * as Form from '@/components/ui/form';
 	import type { PageData } from './$types';
@@ -22,6 +23,10 @@
 	$: selectableUsers = new Map(
 		$conversationsStore.data
 			?.filter((c) => !c.conversation.isGroup)
+			.filter((c) => {
+				const member = c.conversation.members.find((m) => m.userId != $userStore?.id)!;
+				return member.user.fullName.toLowerCase().includes(currentInput.toLowerCase());
+			})
 			.map((c) => {
 				const member = c.conversation.members.find((m) => m.userId != $userStore?.id)!;
 				return [member.userId, member.user.fullName];
@@ -31,6 +36,8 @@
 	$: selectedMembers = $formData.userIds.map((s) => ({ value: s, label: selectableUsers.get(s) }));
 
 	$formData.creatorId = $userStore?.id!;
+
+	let currentInput = '';
 </script>
 
 <BackToLinkButton href="/user/{$userStore?.id}" class="absolute left-4 top-4 lg:hidden" />
@@ -59,6 +66,33 @@
 				<Form.Field {form} name="userIds">
 					<Form.Control let:attrs>
 						<Form.Label class="text-xl">Select group members</Form.Label>
+						<!-- <Select.Root
+							multiple
+							selected={selectedMembers}
+							onSelectedChange={(s) => {
+								if (s) {
+									$formData.userIds = s.map((c) => c.value);
+								} else {
+									$formData.userIds = [];
+								}
+							}}
+						>
+							<input type="text" name="creatorId" value={$userStore?.id} hidden />
+							{#each $formData.userIds as userId}
+								<input type="text" name={attrs.name} hidden value={userId} />
+							{/each}
+
+							<Select.Trigger {...attrs}>
+								<Select.Value placeholder="Choose group members" />
+							</Select.Trigger>
+
+							<Select.Content>
+								{#each selectableUsers.entries() as [id, name]}
+									<Select.Item value={id} label={name} />
+								{/each}
+							</Select.Content>
+						</Select.Root> -->
+
 						<Select.Root
 							multiple
 							selected={selectedMembers}
@@ -80,6 +114,10 @@
 							</Select.Trigger>
 
 							<Select.Content>
+								<Command.Root shouldFilter={false}>
+									<Command.Input bind:value={currentInput} placeholder="Add:" />
+								</Command.Root>
+
 								{#each selectableUsers.entries() as [id, name]}
 									<Select.Item value={id} label={name} />
 								{/each}
