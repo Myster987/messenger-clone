@@ -66,32 +66,6 @@
 				<Form.Field {form} name="userIds">
 					<Form.Control let:attrs>
 						<Form.Label class="text-xl">Select group members</Form.Label>
-						<!-- <Select.Root
-							multiple
-							selected={selectedMembers}
-							onSelectedChange={(s) => {
-								if (s) {
-									$formData.userIds = s.map((c) => c.value);
-								} else {
-									$formData.userIds = [];
-								}
-							}}
-						>
-							<input type="text" name="creatorId" value={$userStore?.id} hidden />
-							{#each $formData.userIds as userId}
-								<input type="text" name={attrs.name} hidden value={userId} />
-							{/each}
-
-							<Select.Trigger {...attrs}>
-								<Select.Value placeholder="Choose group members" />
-							</Select.Trigger>
-
-							<Select.Content>
-								{#each selectableUsers.entries() as [id, name]}
-									<Select.Item value={id} label={name} />
-								{/each}
-							</Select.Content>
-						</Select.Root> -->
 
 						<Select.Root
 							multiple

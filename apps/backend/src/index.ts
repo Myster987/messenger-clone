@@ -45,7 +45,7 @@ export const api = new Hono<Env>()
     .route("/conversations", conversationsRoute)
     .route("/socket", socketRoute);
 
-const server = serve(api, (info) =>
+const server = serve({ fetch: api.fetch, port: 4000 }, (info) =>
     console.log(`Hono server running on port ${info.port}`)
 );
 

@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+    backend:
+        depends_on:
+            - db
+        build:
+            context: ./apps/backend
+            dockerfile: Dockerfile
+        environment:
+            - DATABASE_URL=${DATABASE_URL}
+            - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+            - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+            - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+            - SITE_URL=${SITE_URL}
+        ports:
+            - 4000:4000
+
+    frontend:
+        depends_on:
+            - db
+        build:
+            context: ./apps/frontend
+            dockerfile: Dockerfile
+        environment:
+            - SECRET_DATABASE_URL=${SECRET_DATABASE_URL}
+            - SECRET_CLOUDINARY_CLOUD_NAME=${SECRET_CLOUDINARY_CLOUD_NAME}
+            - SECRET_CLOUDINARY_API_KEY=${SECRET_CLOUDINARY_API_KEY}
+            - SECRET_CLOUDINARY_API_SECRET=${SECRET_CLOUDINARY_API_SECRET}
+            - PUBLIC_API_URL=${PUBLIC_API_URL}
+        ports:
+            - 3000:3000
+    db:
+        image: ghcr.io/tursodatabase/libsql-server:latest
+        environment:
+            - SQLD_NODE=primary
+        ports:
+            - 8081:8080
+        volumes:
+            - ./data/libsql:/var/lib/sqld
