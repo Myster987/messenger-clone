@@ -79,6 +79,10 @@
 					>
 						<form
 							method="post"
+							on:submit={(e) => {
+								// @ts-ignore
+								e.submitter.disabled = true;
+							}}
 							use:enhance={() => {
 								toast.loading('Please wait...');
 
