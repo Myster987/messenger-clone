@@ -8,7 +8,7 @@ declare global {
 			SECRET_CLOUDINARY_CLOUD_NAME: string;
 			SECRET_CLOUDINARY_API_KEY: string;
 			SECRET_CLOUDINARY_API_SECRET: string;
-			SECRET_API_URL: string;
+			PUBLIC_API_URL: string;
 		}
 	}
 }

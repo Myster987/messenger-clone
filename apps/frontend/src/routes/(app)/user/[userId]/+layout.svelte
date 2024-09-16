@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { PUBLIC_API_URL } from '$env/static/public';
 	import { browser } from '$app/environment';
 	import { io } from 'socket.io-client';
 	import { ioClient } from '@/socket';
@@ -22,7 +21,7 @@
 		});
 
 	$: if (browser)
-		$ioClient = io(PUBLIC_API_URL, { path: '/api/socket/io', addTrailingSlash: false });
+		$ioClient = io(process.env.PUBLIC_API_URL, { path: '/api/socket/io', addTrailingSlash: false });
 
 	$: ioClient.attachEvent({
 		eventName: `user:${$userStore?.id}:newConversation`,

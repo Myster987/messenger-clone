@@ -1,4 +1,3 @@
-import { PUBLIC_API_URL } from '$env/static/public';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { authenticateUser, handleLoginRedirect } from '@/auth/handlers';
 import ky from 'ky';
@@ -8,14 +7,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = user;
 	event.locals.session = session;
 	event.locals.apiClient = ky.create({
-		prefixUrl: PUBLIC_API_URL,
+		prefixUrl: process.env.PUBLIC_API_URL,
 		credentials: 'include',
 		fetch: event.fetch,
 		throwHttpErrors: false
 	});
-
-	console.log(event.locals.apiClient, PUBLIC_API_URL, process.env.PUBLIC_API_URL);
-	console.log(event.locals.apiClient.toString());
 
 	if (event.url.pathname.startsWith('/user') && !user) {
 		redirect(302, handleLoginRedirect(event));
