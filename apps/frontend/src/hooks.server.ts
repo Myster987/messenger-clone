@@ -14,6 +14,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		throwHttpErrors: false
 	});
 
+	console.log(event.locals.apiClient);
+
 	if (event.url.pathname.startsWith('/user') && !user) {
 		redirect(302, handleLoginRedirect(event));
 	}
