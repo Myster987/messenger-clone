@@ -38,6 +38,10 @@
 			action="/user/{$userStore?.id}/conversation/{currentMember?.conversationId}?/editConversationImage"
 			method="post"
 			enctype="multipart/form-data"
+			on:submit={(e) => {
+				// @ts-ignore
+				e.submitter.disabled = true;
+			}}
 			use:enhance={() => {
 				toast.loading('Please wait. It can take a while...');
 				return async ({ result }) => {
