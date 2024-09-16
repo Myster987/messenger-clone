@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { PUBLIC_API_URL } from '$env/static/public';
+	import { beforeNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { io } from 'socket.io-client';
 	import { ioClient } from '@/socket';
@@ -8,7 +10,6 @@
 	import { ChatsCard } from '@/components/custom/cards';
 	import type { LayoutData } from './$types';
 	import type { ApiResponse, SocketMessage, SocketUpdateMembers, StoreConversation } from '@/types';
-	import { beforeNavigate } from '$app/navigation';
 
 	export let data: LayoutData;
 
@@ -21,7 +22,7 @@
 		});
 
 	$: if (browser)
-		$ioClient = io(process.env.PUBLIC_API_URL, { path: '/api/socket/io', addTrailingSlash: false });
+		$ioClient = io(PUBLIC_API_URL, { path: '/api/socket/io', addTrailingSlash: false });
 
 	$: ioClient.attachEvent({
 		eventName: `user:${$userStore?.id}:newConversation`,

@@ -1,3 +1,4 @@
+import { PUBLIC_API_URL } from '$env/static/public';
 import { writable } from 'svelte/store';
 import { createAsyncStore } from './async_stores';
 import ky from 'ky';
@@ -9,7 +10,7 @@ export const conversationsStore = createAsyncStore<StoreConversation[]>();
 
 export const apiClientStore = writable(
 	ky.create({
-		prefixUrl: process.env.PUBLIC_API_URL,
+		prefixUrl: PUBLIC_API_URL,
 		credentials: 'include',
 		throwHttpErrors: false
 	})
