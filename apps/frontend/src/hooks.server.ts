@@ -14,7 +14,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		throwHttpErrors: false
 	});
 
-	console.log(event.locals.apiClient, PUBLIC_API_URL);
+	console.log(event.locals.apiClient, PUBLIC_API_URL, process.env.PUBLIC_API_URL);
 	console.log(event.locals.apiClient.toString());
 
 	if (event.url.pathname.startsWith('/user') && !user) {
