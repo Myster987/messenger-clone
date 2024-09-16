@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { PUBLIC_API_URL } from '$env/static/public';
 	import { beforeNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { io } from 'socket.io-client';
@@ -22,7 +21,10 @@
 		});
 
 	$: if (browser)
-		$ioClient = io(PUBLIC_API_URL, { path: '/api/socket/io', addTrailingSlash: false });
+		$ioClient = io('https://messenger-clone-backend.mikolajmaciejak.dev', {
+			path: '/api/socket/io',
+			addTrailingSlash: false
+		});
 
 	$: ioClient.attachEvent({
 		eventName: `user:${$userStore?.id}:newConversation`,
