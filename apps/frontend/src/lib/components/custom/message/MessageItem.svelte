@@ -211,6 +211,7 @@
 											use:enhance={() => {
 												return async () => {};
 											}}
+											class="w-full"
 										>
 											<input type="text" name="messageId" value={data.message.id} hidden />
 											<input type="text" name="senderId" value={senderProfile?.id} hidden />

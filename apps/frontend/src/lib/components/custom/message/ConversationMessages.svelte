@@ -76,7 +76,7 @@
 			if (!updateTimeout) {
 				updateTimeout = window.setTimeout(() => updateSeenMessages(newestMessage), 100);
 			}
-			firstElement?.scrollIntoView(false);
+			firstElement?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
 		}
 	}
 	$: if (firstElement) {
