@@ -26,7 +26,7 @@
 					toast.error(form.message?.text);
 				}
 			}
-			setTimeout(() => inputElement.focus(), 100);
+			inputElement.focus();
 		}
 	});
 
