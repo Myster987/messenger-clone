@@ -20,6 +20,10 @@
 		onSubmit({ formData }) {
 			formData.append('senderId', currentMemberId);
 		},
+		onResult() {
+			inputElement.blur();
+			inputElement.focus();
+		},
 		onUpdate({ form, result }) {
 			if (form.message) {
 				if (result.type == 'failure') {
@@ -28,6 +32,7 @@
 			}
 		},
 		onUpdated() {
+			inputElement.blur();
 			inputElement.focus();
 		}
 	});
@@ -144,6 +149,7 @@
 					{...attrs}
 					bind:value={$messageFormData.text}
 					bind:this={inputElement}
+					f
 					autocomplete="off"
 					placeholder="Aa"
 					class="border-input bg-secondary ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-full border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
