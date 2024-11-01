@@ -26,6 +26,8 @@
 					toast.error(form.message?.text);
 				}
 			}
+		},
+		onUpdated() {
 			inputElement.focus();
 		}
 	});
