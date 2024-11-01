@@ -31,6 +31,7 @@ services:
         ports:
             - 3000:3000
     db:
+        container_name: libsql-db
         image: ghcr.io/tursodatabase/libsql-server:latest
         environment:
             - SQLD_NODE=primary
