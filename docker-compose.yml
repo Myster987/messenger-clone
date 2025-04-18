@@ -38,4 +38,4 @@ services:
         ports:
             - 8081:8080
         volumes:
-            - ./data/libsql:/var/lib/sqld
+            - ./data/database:/var/lib/sqld
