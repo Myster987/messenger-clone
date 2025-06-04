@@ -28,7 +28,7 @@ FROM builder AS prod
 WORKDIR /app
 
 COPY --from=builder /app/build build/
-COPY --from=build /app/node_modules /app/node_modules
+COPY --from=builder /app/node_modules node_modules/
 COPY --from=builder /app/package.json .
 
 ENV SECRET_DATABASE_URL=${SECRET_DATABASE_URL}

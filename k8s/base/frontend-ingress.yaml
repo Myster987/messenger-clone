@@ -1,25 +1,25 @@
-- apiVersion: networking.k8s.io/v1
-  kind: Ingress
-  metadata:
-      annotations:
-          traefik.ingress.kubernetes.io/router.entrypoints: websecure
-          traefik.ingress.kubernetes.io/router.tls: "true"
-      name: frontend-ingress
-      namespace: messenger-clone
-  spec:
-      ingressClassName: traefik
-      rules:
-          - host: messenger-clone.mikolajmaciejak.dev
-            http:
-                paths:
-                    - backend:
-                          service:
-                              name: frontend
-                              port:
-                                  number: 3000
-                      path: /
-                      pathType: Prefix
-      tls:
-          - hosts:
-                - messenger-clone.mikolajmaciejak.dev
-            secretName: mikolajmaciejak-dev-cert-tls
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.tls: "true"
+    name: frontend-ingress
+    namespace: messenger-clone
+spec:
+    ingressClassName: traefik
+    rules:
+        - host: messenger-clone.mikolajmaciejak.dev
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: frontend
+                            port:
+                                number: 3000
+    tls:
+        - hosts:
+              - messenger-clone.mikolajmaciejak.dev
+          secretName: mikolajmaciejak-dev-cert-tls
