@@ -1,0 +1,71 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"traefik.ingress.kubernetes.io/router.entrypoints":"websecure","traefik.ingress.kubernetes.io/router.tls":"true"},"name":"backend-ingress","namespace":"messenger-clone"},"spec":{"rules":[{"host":"messenger-clone-backend.mikolajmaciejak.dev","http":{"paths":[{"backend":{"service":{"name":"backend","port":{"number":4000}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["messenger-clone-backend.mikolajmaciejak.dev"],"secretName":"mikolajmaciejak-dev-cert-tls"}]}}
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    creationTimestamp: "2025-06-03T19:56:18Z"
+    generation: 1
+    name: backend-ingress
+    namespace: messenger-clone
+    resourceVersion: "2422671"
+    uid: 64789cc9-fe6d-4a88-a253-77cb00897f00
+  spec:
+    ingressClassName: traefik
+    rules:
+    - host: messenger-clone-backend.mikolajmaciejak.dev
+      http:
+        paths:
+        - backend:
+            service:
+              name: backend
+              port:
+                number: 4000
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - messenger-clone-backend.mikolajmaciejak.dev
+      secretName: mikolajmaciejak-dev-cert-tls
+  status:
+    loadBalancer: {}
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"traefik.ingress.kubernetes.io/router.entrypoints":"websecure","traefik.ingress.kubernetes.io/router.tls":"true"},"name":"frontend-ingress","namespace":"messenger-clone"},"spec":{"rules":[{"host":"messenger-clone.mikolajmaciejak.dev","http":{"paths":[{"backend":{"service":{"name":"frontend","port":{"number":3000}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["messenger-clone.mikolajmaciejak.dev"],"secretName":"mikolajmaciejak-dev-cert-tls"}]}}
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    creationTimestamp: "2025-06-03T18:24:23Z"
+    generation: 2
+    name: frontend-ingress
+    namespace: messenger-clone
+    resourceVersion: "2411195"
+    uid: 95b4c08e-628c-44b8-8999-f7351b0ca475
+  spec:
+    ingressClassName: traefik
+    rules:
+    - host: messenger-clone.mikolajmaciejak.dev
+      http:
+        paths:
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - messenger-clone.mikolajmaciejak.dev
+      secretName: mikolajmaciejak-dev-cert-tls
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""

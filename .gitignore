@@ -9,3 +9,4 @@ vite.config.ts.timestamp-*
 drizzle
 local.*
 build
+k8s/secrets

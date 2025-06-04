@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.36.0 (HEAD)
+    labels:
+        io.kompose.service: backend
+    name: backend
+    namespace: messenger-clone
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            io.kompose.service: backend
+    template:
+        metadata:
+            annotations:
+                kompose.cmd: kompose convert
+                kompose.version: 1.36.0 (HEAD)
+            labels:
+                io.kompose.service: backend
+        spec:
+            containers:
+                - env:
+                      - name: CLOUDINARY_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: messenger-clone-envs
+                                key: CLOUDINARY_API_KEY
+                      - name: CLOUDINARY_API_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: messenger-clone-envs
+                                key: CLOUDINARY_API_SECRET
+                      - name: CLOUDINARY_CLOUD_NAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: messenger-clone-envs
+                                key: CLOUDINARY_CLOUD_NAME
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: messenger-clone-envs
+                                key: DATABASE_URL
+                      - name: SITE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: messenger-clone-envs
+                                key: SITE_URL
+                  image: ghcr.io/myster987/messenger-clone-backend:latest
+                  name: backend
+                  ports:
+                      - containerPort: 4000
+                        protocol: TCP
+            restartPolicy: Always

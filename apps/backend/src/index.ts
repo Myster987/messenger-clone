@@ -22,7 +22,7 @@ export const api = new Hono<Env>()
     .basePath("/api")
     .use(
         cors({
-            origin: process.env.SITE_URL!,
+            origin: String(process.env.SITE_URL).trim(),
             credentials: true,
             allowMethods: [
                 "GET",
@@ -55,7 +55,7 @@ const io = new Server(server, {
     serveClient: false,
     cors: {
         credentials: true,
-        origin: process.env.SITE_URL,
+        origin: String(process.env.SITE_URL).trim(),
     },
 });
 

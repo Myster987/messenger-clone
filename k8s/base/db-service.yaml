@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+    annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.36.0 (HEAD)
+    labels:
+        io.kompose.service: db
+    name: db
+    namespace: messenger-clone
+spec:
+    ports:
+        - name: "8080"
+          port: 8080
+          targetPort: 8080
+    selector:
+        io.kompose.service: db

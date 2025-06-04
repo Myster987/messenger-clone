@@ -4,7 +4,7 @@ ARG SECRET_CLOUDINARY_API_KEY
 ARG SECRET_CLOUDINARY_API_SECRET
 ARG PUBLIC_API_URL
 
-FROM node:22-bullseye-slim AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -28,6 +28,7 @@ FROM builder AS prod
 WORKDIR /app
 
 COPY --from=builder /app/build build/
+COPY --from=build /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json .
 
 ENV SECRET_DATABASE_URL=${SECRET_DATABASE_URL}
