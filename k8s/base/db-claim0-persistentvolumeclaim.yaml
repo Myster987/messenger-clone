@@ -8,7 +8,7 @@ metadata:
 spec:
     accessModes:
         - ReadWriteOnce
-    storageClassName: longhorn
+    storageClassName: local-path
     resources:
         requests:
-            storage: 150Mi
+            storage: 200Mi
