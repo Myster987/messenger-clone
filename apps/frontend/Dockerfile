@@ -6,6 +6,8 @@ COPY apps/frontend/ ./apps/frontend/
 COPY apps/backend/ ./apps/backend/
 COPY apps/db/ ./apps/db/
 RUN pnpm install
+ARG PUBLIC_API_URL
+ENV PUBLIC_API_URL=${PUBLIC_API_URL}
 RUN pnpm --filter messenger-clone build
 EXPOSE 3000
 CMD ["node", "apps/frontend/build"]
