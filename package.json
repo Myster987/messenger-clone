@@ -1,18 +1,19 @@
 {
-    "name": "messenger-clone-monorepo",
-    "version": "1.0.0",
-    "type": "module",
-    "private": "true",
-    "scripts": {
-        "db:local": "cd ./apps/db && pnpm run db:local",
-        "db:generate": "cd ./apps/db && pnpm run db:generate",
-        "db:push": "cd ./apps/db && pnpm run db:push",
-        "db:studio": "cd ./apps/db && pnpm run db:studio",
-        "db:migrate": "cd ./apps/db && pnpm run db:migrate",
-        "frontend:dev": "cd ./apps/frontend && pnpm run dev",
-        "frontend:build": "cd ./apps/frontend && pnpm run build",
-        "frontend:start": "cd ./apps/frontend && node build/index.js",
-        "backend:dev": "cd ./apps/backend && pnpm run dev",
-        "backend:start": "cd ./apps/backend && pnpm run start"
-    }
+  "name": "messenger-clone-monorepo",
+  "version": "1.0.0",
+  "type": "module",
+  "private": "true",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "db:local": "cd ./apps/db && pnpm run db:local",
+    "db:generate": "cd ./apps/db && pnpm run db:generate",
+    "db:push": "cd ./apps/db && pnpm run db:push",
+    "db:studio": "cd ./apps/db && pnpm run db:studio",
+    "db:migrate": "cd ./apps/db && pnpm run db:migrate",
+    "frontend:dev": "cd ./apps/frontend && pnpm run dev",
+    "frontend:build": "cd ./apps/frontend && pnpm run build",
+    "frontend:start": "cd ./apps/frontend && node build/index.js",
+    "backend:dev": "cd ./apps/backend && pnpm run dev",
+    "backend:start": "cd ./apps/backend && pnpm run start"
+  }
 }
