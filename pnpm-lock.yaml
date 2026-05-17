@@ -59,19 +59,19 @@ importers:
       '@libsql/client':
         specifier: ^0.7.0
         version: 0.7.0
+      drizzle-kit:
+        specifier: ^0.23.2
+        version: 0.23.2
       drizzle-orm:
         specifier: ^0.32.2
         version: 0.32.2(@libsql/client@0.7.0)
+      tsx:
+        specifier: ^4.19.0
+        version: 4.19.0
     devDependencies:
       '@types/node':
         specifier: ^20.16.2
         version: 20.16.2
-      drizzle-kit:
-        specifier: ^0.23.2
-        version: 0.23.2
-      tsx:
-        specifier: ^4.19.0
-        version: 4.19.0
 
   apps/frontend:
     dependencies:
