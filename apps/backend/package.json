@@ -1,30 +1,30 @@
 {
-    "name": "backend",
-    "type": "module",
-    "private": "true",
-    "scripts": {
-        "start": "tsx ./src/index.ts",
-        "dev": "tsx watch --env-file=.env ./src/index.ts"
-    },
-    "exports": {
-        ".": "./src/client.ts"
-    },
-    "dependencies": {
-        "@hono/node-server": "^1.19.11",
-        "@hono/zod-validator": "0.2.2",
-        "@libsql/client": "^0.7.0",
-        "@lucia-auth/adapter-drizzle": "^1.1.0",
-        "cloudinary": "^2.9.0",
-        "drizzle-orm": "0.32.1",
-        "hono": "^4.12.5",
-        "lucia": "^3.2.2",
-        "nanoid": "5.0.7",
-        "socket.io": "^4.8.3",
-        "zod": "^3.25.76"
-    },
-    "devDependencies": {
-        "@types/node": "^20.19.35",
-        "@types/ws": "^8.18.1",
-        "tsx": "^4.21.0"
-    }
+  "name": "backend",
+  "type": "module",
+  "private": "true",
+  "scripts": {
+    "start": "tsx ./src/index.ts",
+    "dev": "tsx watch --env-file=.env ./src/index.ts"
+  },
+  "exports": {
+    ".": "./src/client.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.14",
+    "@hono/zod-validator": "0.2.2",
+    "@libsql/client": "^0.17.3",
+    "@lucia-auth/adapter-drizzle": "^1.1.0",
+    "cloudinary": "^2.10.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.23",
+    "lucia": "^3.2.2",
+    "nanoid": "5.0.7",
+    "socket.io": "^4.8.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.41",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.22.4"
+  }
 }

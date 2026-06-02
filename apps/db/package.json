@@ -12,16 +12,17 @@
     "db:local": "turso dev -f local.db",
     "db:generate": "drizzle-kit generate --config=./drizzle.config.ts",
     "db:push": "drizzle-kit push --config=./drizzle.config.ts",
+    "db:pull": "drizzle-kit pull --config=./drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=./drizzle.config.ts",
     "db:migrate": "tsx --env-file=.env ./src/migrate.ts"
   },
   "dependencies": {
-    "@libsql/client": "^0.7.0",
-    "drizzle-orm": "^0.32.2",
-    "drizzle-kit": "^0.23.2",
-    "tsx": "^4.19.0"
+    "@libsql/client": "^0.17.3",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
+    "tsx": "^4.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20.16.2"
+    "@types/node": "^20.19.41"
   }
 }

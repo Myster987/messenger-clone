@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/public';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { authenticateUser, handleLoginRedirect } from '@/auth/handlers';
 import ky from 'ky';
@@ -7,7 +8,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = user;
 	event.locals.session = session;
 	event.locals.apiClient = ky.create({
-		prefixUrl: process.env.PUBLIC_API_URL,
+		prefixUrl: env.PUBLIC_API_URL,
 		credentials: 'include',
 		fetch: event.fetch,
 		throwHttpErrors: false
