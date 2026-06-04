@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/public';
 import { writable } from 'svelte/store';
 import { createAsyncStore } from './async_stores';
 import ky from 'ky';
@@ -9,7 +10,7 @@ export const conversationsStore = createAsyncStore<StoreConversation[]>();
 
 export const apiClientStore = writable(
 	ky.create({
-		prefixUrl: 'https://messenger-clone-backend.mikolajmaciejak.dev',
+		prefixUrl: env.PUBLIC_API_URL,
 		credentials: 'include',
 		throwHttpErrors: false
 	})

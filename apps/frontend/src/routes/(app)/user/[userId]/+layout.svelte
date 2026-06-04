@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { env } from '$env/dynamic/public';
 	import { beforeNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { io } from 'socket.io-client';
@@ -21,7 +22,7 @@
 		});
 
 	$: if (browser)
-		$ioClient = io('https://messenger-clone-backend.mikolajmaciejak.dev', {
+		$ioClient = io(env.PUBLIC_API_URL, {
 			path: '/api/socket/io',
 			addTrailingSlash: false
 		});

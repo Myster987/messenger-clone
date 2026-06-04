@@ -1,13 +1,23 @@
-FROM node:22-slim
-RUN npm i -g pnpm
+FROM node:22-bullseye-slim AS builder
+
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-COPY apps/frontend/ ./apps/frontend/
-COPY apps/backend/ ./apps/backend/
-COPY apps/db/ ./apps/db/
+
+COPY package*.json .
+RUN npm i -g pnpm
 RUN pnpm install
-ARG PUBLIC_API_URL
-ENV PUBLIC_API_URL=${PUBLIC_API_URL}
-RUN pnpm --filter messenger-clone build
+
+COPY . .
+
+RUN pnpm run build
+RUN pnpm prune --prod
+
+FROM builder AS prod
+
+WORKDIR /app
+
+COPY --from=builder /app/build build/
+COPY --from=builder /app/package.json .
+
 EXPOSE 3000
+
 CMD ["node", "apps/frontend/build"]

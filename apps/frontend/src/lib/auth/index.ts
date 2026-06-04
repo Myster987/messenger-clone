@@ -1,38 +1,51 @@
 import { dev } from '$app/environment';
-import { Lucia } from 'lucia';
-import { DrizzleSQLiteAdapter } from '@lucia-auth/adapter-drizzle';
+import { getRequestEvent } from '$app/server';
+import { env } from '$env/dynamic/private';
 import { db } from '@/db';
-import { sessions, users } from '@/db/schema';
+import { sessions, users, accounts, verifications } from '@/db/schema';
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { sveltekitCookies } from 'better-auth/svelte-kit';
 
-const adapter = new DrizzleSQLiteAdapter(db, sessions, users);
+export const auth = betterAuth({
+	database: drizzleAdapter(db, {
+		provider: 'sqlite',
+		schema: {
+			user: users,
+			session: sessions,
+			account: accounts,
+			verification: verifications
+		}
+	}),
 
-export const lucia = new Lucia(adapter, {
-	sessionCookie: {
-		attributes: {
-			// set to `true` when using HTTPS
-			secure: !dev
+	user: {
+		fields: {
+			name: 'fullName'
+		},
+		additionalFields: {
+			profileImageId: {
+				type: 'string',
+				required: false,
+				nullable: true
+			}
 		}
 	},
-	getUserAttributes: (attributes) => {
-		return {
-			fullName: attributes.fullName,
-			email: attributes.email,
-			createdAt: attributes.createdAt,
-			profileImageId: attributes.profileImageId
-		};
-	}
+
+	session: {
+		cookieCache: { enabled: true }
+	},
+
+	advanced: {
+		useSecureCookies: !dev
+	},
+
+	emailAndPassword: { enabled: true },
+
+	baseURL: env.BETTER_AUTH_URL,
+	secret: env.BETTER_AUTH_SECRET,
+
+	plugins: [sveltekitCookies(getRequestEvent)]
 });
 
-declare module 'lucia' {
-	interface Register {
-		Lucia: typeof lucia;
-		DatabaseUserAttributes: DatabaseUserAttributes;
-	}
-}
-
-interface DatabaseUserAttributes {
-	fullName: string;
-	email: string;
-	createdAt: string;
-	profileImageId: string;
-}
+export type Session = typeof auth.$Infer.Session.session;
+export type User = typeof auth.$Infer.Session.user;

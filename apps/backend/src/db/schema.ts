@@ -1,221 +1,251 @@
 import {
-    relations,
-    sql,
-    type InferInsertModel,
-    type InferSelectModel,
+  relations,
+  sql,
+  type InferInsertModel,
+  type InferSelectModel,
 } from "drizzle-orm";
 import {
-    index,
-    integer,
-    sqliteTable,
-    text,
-    type AnySQLiteColumn,
+  index,
+  integer,
+  sqliteTable,
+  text,
+  type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
-    id: text("id").notNull().primaryKey(),
-    createdAt: text("created_at")
-        .notNull()
-        .default(sql`current_timestamp`),
-    email: text("email").notNull().unique(),
-    password: text("password").notNull(),
-    fullName: text("full_name").notNull(),
-    isOnline: integer("is_online", { mode: "boolean" })
-        .notNull()
-        .default(false),
+  id: text("id").notNull().primaryKey(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  email: text("email").notNull().unique(),
+  // password: text("password").notNull(),
+  fullName: text("full_name").notNull(),
+  emailVerified: integer("email_verified", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  isOnline: integer("is_online", { mode: "boolean" }).notNull().default(false),
 });
 
 export const usersRelations = relations(users, ({ one }) => ({
-    profileImage: one(profileImages),
+  profileImage: one(profileImages),
 }));
 export type SelectUsers = InferSelectModel<typeof users>;
 export type InsertUsers = InferInsertModel<typeof users>;
 
 export const sessions = sqliteTable("sessions", {
-    id: text("id").notNull().primaryKey(),
-    userId: text("user_id")
-        .notNull()
-        .references(() => users.id),
-    expiresAt: integer("expires_at").notNull(),
+  id: text("id").notNull().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
 });
 export type SelectSessions = InferSelectModel<typeof sessions>;
 export type InsertSessions = InferInsertModel<typeof sessions>;
 
+export const accounts = sqliteTable("accounts", {
+  id: text("id").notNull().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  password: text("password"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+export const verifications = sqliteTable("verifications", {
+  id: text("id").notNull().primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
+});
+
 export const profileImages = sqliteTable("profile_images", {
-    id: text("id").notNull().primaryKey(),
-    createdAt: text("created_at")
-        .notNull()
-        .default(sql`current_timestamp`),
-    imageUrl: text("image_url").notNull(),
-    publicId: text("public_id").notNull(),
-    userId: text("user_id")
-        .notNull()
-        .references(() => users.id),
+  id: text("id").notNull().primaryKey(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`current_timestamp`),
+  imageUrl: text("image_url").notNull(),
+  publicId: text("public_id").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
 });
 
 export const profileImagesRelations = relations(profileImages, ({ one }) => ({
-    user: one(users, {
-        fields: [profileImages.userId],
-        references: [users.id],
-    }),
+  user: one(users, {
+    fields: [profileImages.userId],
+    references: [users.id],
+  }),
 }));
 export type SelectProfileImages = InferSelectModel<typeof profileImages>;
 export type InsertProfileImages = InferInsertModel<typeof profileImages>;
 
 export const conversations = sqliteTable("conversations", {
-    id: text("id").notNull().primaryKey(),
-    createdAt: text("created_at")
-        .notNull()
-        .default(sql`current_timestamp`),
-    latestMessageId: text("latest_message_id").references(
-        (): AnySQLiteColumn => messages.id,
-        { onDelete: "set null" }
-    ),
-    name: text("name").notNull(),
-    isGroup: integer("is_group", { mode: "boolean" }).notNull(),
-    conversationImageId: text("conversation_image_id").references(
-        () => conversationImages.id
-    ),
+  id: text("id").notNull().primaryKey(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`current_timestamp`),
+  latestMessageId: text("latest_message_id").references(
+    (): AnySQLiteColumn => messages.id,
+    {
+      onDelete: "set null",
+    },
+  ),
+  name: text("name").notNull(),
+  isGroup: integer("is_group", { mode: "boolean" }).notNull(),
+  conversationImageId: text("conversation_image_id").references(
+    () => conversationImages.id,
+  ),
 });
 
 export const conversationsRelations = relations(
-    conversations,
-    ({ many, one }) => ({
-        members: many(conversationMembers),
-        conversationImage: one(conversationImages, {
-            fields: [conversations.conversationImageId],
-            references: [conversationImages.id],
-        }),
-        latestMessage: one(messages, {
-            fields: [conversations.latestMessageId],
-            references: [messages.id],
-        }),
-    })
+  conversations,
+  ({ many, one }) => ({
+    members: many(conversationMembers),
+    conversationImage: one(conversationImages, {
+      fields: [conversations.conversationImageId],
+      references: [conversationImages.id],
+    }),
+    latestMessage: one(messages, {
+      fields: [conversations.latestMessageId],
+      references: [messages.id],
+    }),
+  }),
 );
 export type SelectConversations = InferSelectModel<typeof conversations>;
 export type InsertConversations = InferInsertModel<typeof conversations>;
 
 export const conversationImages = sqliteTable("conversation_images", {
-    id: text("id").notNull().primaryKey(),
-    createdAt: text("created_at")
-        .notNull()
-        .default(sql`current_timestamp`),
-    imageUrl: text("image_url").notNull(),
-    publicId: text("public_id").notNull(),
+  id: text("id").notNull().primaryKey(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`current_timestamp`),
+  imageUrl: text("image_url").notNull(),
+  publicId: text("public_id").notNull(),
 });
 
 export const conversationImagesRelations = relations(
-    conversationImages,
-    ({ one }) => ({
-        conversation: one(conversations),
-    })
+  conversationImages,
+  ({ one }) => ({
+    conversation: one(conversations),
+  }),
 );
 export type SelectConversationImages = InferSelectModel<
-    typeof conversationImages
+  typeof conversationImages
 >;
 export type InsertConversationImages = InferInsertModel<
-    typeof conversationImages
+  typeof conversationImages
 >;
 
 export const conversationMembers = sqliteTable(
-    "conversation_members",
-    {
-        id: text("id").notNull().primaryKey(),
-        createdAt: text("created_at")
-            .notNull()
-            .default(sql`current_timestamp`),
-        conversationId: text("conversation_id")
-            .notNull()
-            .references(() => conversations.id, { onDelete: "cascade" }),
-        userId: text("user_id")
-            .notNull()
-            .references(() => users.id),
-        nick: text("nick"),
-        isAdmin: integer("is_admin", { mode: "boolean" })
-            .notNull()
-            .default(false),
-        currentlyMember: integer("currently_member", { mode: "boolean" })
-            .notNull()
-            .default(true),
-        lastSeenMessageId: text("last_seen_message_id").references(
-            (): AnySQLiteColumn => messages.id
-        ),
-    },
-    (table) => {
-        return {
-            userIdIdx: index("user_id_idx").on(table.userId),
-        };
-    }
+  "conversation_members",
+  {
+    id: text("id").notNull().primaryKey(),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`current_timestamp`),
+    conversationId: text("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    nick: text("nick"),
+    isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
+    currentlyMember: integer("currently_member", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    lastSeenMessageId: text("last_seen_message_id").references(
+      (): AnySQLiteColumn => messages.id,
+    ),
+  },
+  (table) => {
+    return {
+      userIdIdx: index("user_id_idx").on(table.userId),
+    };
+  },
 );
 
 export const conversationMembersRelations = relations(
-    conversationMembers,
-    ({ many, one }) => ({
-        messages: many(messages, { relationName: "messagesWrittenByUser" }),
-        conversation: one(conversations, {
-            fields: [conversationMembers.conversationId],
-            references: [conversations.id],
-            relationName: "memberConversation",
-        }),
-        user: one(users, {
-            fields: [conversationMembers.userId],
-            references: [users.id],
-            relationName: "userProfileOfConversationMember",
-        }),
-        lastSeenMessage: one(messages, {
-            fields: [conversationMembers.lastSeenMessageId],
-            references: [messages.id],
-            relationName: "lastSeenMessageByUser",
-        }),
-    })
+  conversationMembers,
+  ({ many, one }) => ({
+    messages: many(messages, { relationName: "messagesWrittenByUser" }),
+    conversation: one(conversations, {
+      fields: [conversationMembers.conversationId],
+      references: [conversations.id],
+      relationName: "memberConversation",
+    }),
+    user: one(users, {
+      fields: [conversationMembers.userId],
+      references: [users.id],
+      relationName: "userProfileOfConversationMember",
+    }),
+    lastSeenMessage: one(messages, {
+      fields: [conversationMembers.lastSeenMessageId],
+      references: [messages.id],
+      relationName: "lastSeenMessageByUser",
+    }),
+  }),
 );
 export type SelectConversationMembers = InferSelectModel<
-    typeof conversationMembers
+  typeof conversationMembers
 >;
 export type InsertConversationMembers = InferInsertModel<
-    typeof conversationMembers
+  typeof conversationMembers
 >;
 
 export const messages = sqliteTable("messages", {
-    id: text("id").notNull().primaryKey(),
-    createdAt: text("created_at")
-        .notNull()
-        .default(sql`current_timestamp`),
-    updatedAt: text("updated_at")
-        .notNull()
-        .default(sql`current_timestamp`),
-    senderId: text("sender_id")
-        .notNull()
-        .references(() => conversationMembers.id),
-    type: text("type").notNull().default("message"),
-    body: text("body"),
-    imageId: text("image_id").references(() => images.id, {
-        onDelete: "set null",
-    }),
+  id: text("id").notNull().primaryKey(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`current_timestamp`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`current_timestamp`),
+  senderId: text("sender_id")
+    .notNull()
+    .references(() => conversationMembers.id),
+  type: text("type").notNull().default("message"),
+  body: text("body"),
+  imageId: text("image_id").references(() => images.id, {
+    onDelete: "set null",
+  }),
 });
 
 export const messagesRelations = relations(messages, ({ one, many }) => ({
-    sender: one(conversationMembers, {
-        fields: [messages.senderId],
-        references: [conversationMembers.id],
-        relationName: "sendByMember",
-    }),
-    image: one(images, {
-        fields: [messages.imageId],
-        references: [images.id],
-    }),
-    seenBy: many(conversationMembers, { relationName: "seenByMembers" }),
+  sender: one(conversationMembers, {
+    fields: [messages.senderId],
+    references: [conversationMembers.id],
+    relationName: "sendByMember",
+  }),
+  image: one(images, {
+    fields: [messages.imageId],
+    references: [images.id],
+  }),
+  seenBy: many(conversationMembers, { relationName: "seenByMembers" }),
 }));
 export type SelectMessages = InferSelectModel<typeof messages>;
 export type InsertMessages = InferInsertModel<typeof messages>;
 
 export const images = sqliteTable("images", {
-    id: text("id").notNull().primaryKey(),
-    createdAt: text("created_at")
-        .notNull()
-        .default(sql`current_timestamp`),
-    imageUrl: text("image_url").notNull(),
-    publicId: text("public_id").notNull(),
+  id: text("id").notNull().primaryKey(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`current_timestamp`),
+  imageUrl: text("image_url").notNull(),
+  publicId: text("public_id").notNull(),
 });
 export type SelectImages = InferSelectModel<typeof images>;
 export type InsertImages = InferInsertModel<typeof images>;

@@ -3,12 +3,12 @@ import { index, integer, sqliteTable, text, type AnySQLiteColumn } from 'drizzle
 
 export const users = sqliteTable('users', {
 	id: text('id').notNull().primaryKey(),
-	createdAt: text('created_at')
-		.notNull()
-		.default(sql`current_timestamp`),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 	email: text('email').notNull().unique(),
-	password: text('password').notNull(),
+	// password: text('password').notNull(),
 	fullName: text('full_name').notNull(),
+	emailVerified: integer('email_verified', { mode: 'boolean' }).notNull().default(false),
 	isOnline: integer('is_online', { mode: 'boolean' }).notNull().default(false)
 });
 
@@ -23,10 +23,40 @@ export const sessions = sqliteTable('sessions', {
 	userId: text('user_id')
 		.notNull()
 		.references(() => users.id),
-	expiresAt: integer('expires_at').notNull()
+	token: text('token').notNull().unique(),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+	ipAddress: text('ip_address'),
+	userAgent: text('user_agent')
 });
 export type SelectSessions = InferSelectModel<typeof sessions>;
 export type InsertSessions = InferInsertModel<typeof sessions>;
+
+export const accounts = sqliteTable('accounts', {
+	id: text('id').notNull().primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	accountId: text('account_id').notNull(),
+	providerId: text('provider_id').notNull(),
+	accessToken: text('access_token'),
+	refreshToken: text('refresh_token'),
+	idToken: text('id_token'),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }),
+	password: text('password'),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
+});
+
+export const verifications = sqliteTable('verifications', {
+	id: text('id').notNull().primaryKey(),
+	identifier: text('identifier').notNull(),
+	value: text('value').notNull(),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' }),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+});
 
 export const profileImages = sqliteTable('profile_images', {
 	id: text('id').notNull().primaryKey(),

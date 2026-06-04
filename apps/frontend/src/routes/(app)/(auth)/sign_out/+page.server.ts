@@ -1,22 +1,19 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { lucia } from '@/auth';
+import { auth } from '@/auth';
 import { updateUserStatusToOfflineById } from '@/db/queries';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-	default: async ({ cookies, locals: { session, user } }) => {
+	default: async ({ request, locals: { session, user } }) => {
 		if (!session) {
 			return fail(401);
 		}
+
 		await Promise.all([
-			lucia.invalidateSession(session.id),
+			auth.api.signOut({ headers: request.headers }),
 			updateUserStatusToOfflineById.run({ userId: user?.id })
 		]);
-		const sessionCookie = lucia.createBlankSessionCookie();
-		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '/',
-			...sessionCookie.attributes
-		});
+
 		redirect(302, '/sign_in');
 	}
 };

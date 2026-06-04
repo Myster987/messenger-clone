@@ -8,18 +8,18 @@ export const checkIfUserExists = db
 	.where(eq(schema.users.email, sql.placeholder('email')))
 	.prepare();
 
-export const insertUser = db
-	.insert(schema.users)
-	.values({
-		id: sql.placeholder('id'),
-		email: sql.placeholder('email'),
-		password: sql.placeholder('password'),
-		fullName: sql.placeholder('fullName'),
-		isOnline: sql.placeholder('isOnline')
-	})
-	.onConflictDoNothing()
-	.returning()
-	.prepare();
+// export const insertUser = db
+// 	.insert(schema.users)
+// 	.values({
+// 		id: sql.placeholder('id'),
+// 		email: sql.placeholder('email'),
+// 		password: sql.placeholder('password'),
+// 		fullName: sql.placeholder('fullName'),
+// 		isOnline: sql.placeholder('isOnline')
+// 	})
+// 	.onConflictDoNothing()
+// 	.returning()
+// 	.prepare();
 
 export const updateUserStatusToOfflineById = db
 	.update(schema.users)
@@ -68,9 +68,6 @@ export const queryUserByIdWithProfileImageWithoutPassword = db.query.users
 		where: eq(schema.users.id, sql.placeholder('userId')),
 		with: {
 			profileImage: true
-		},
-		columns: {
-			password: false
 		}
 	})
 	.prepare();

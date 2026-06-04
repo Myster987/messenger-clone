@@ -1,7 +1,8 @@
 // See https://kit.svelte.dev/docs/types#app
 
 import type { KyInstance } from 'ky';
-import type { Session, User } from 'lucia';
+import type { Session } from '$lib/auth';
+import type { User } from '@/types';
 // for information about these interfaces
 declare global {
 	namespace App {
