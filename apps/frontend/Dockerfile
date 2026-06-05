@@ -1,4 +1,4 @@
-FROM node:22-bullseye-slim AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -16,6 +16,7 @@ FROM builder AS prod
 WORKDIR /app
 
 COPY --from=builder /app/build build/
+COPY --from=builder /app/node_modules node_modules/
 COPY --from=builder /app/package.json .
 
 EXPOSE 3000

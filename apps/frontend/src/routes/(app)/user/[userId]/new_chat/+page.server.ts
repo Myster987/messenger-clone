@@ -8,6 +8,8 @@ export const actions: Actions = {
 			secondUserId: string;
 		};
 
+		console.log(userId, formData.secondUserId);
+
 		const res = await apiClient.post('api/conversations/chat', {
 			json: {
 				firstUserId: userId,

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const addMembersToGroup = z.object({
-	addedById: z.string().min(1).max(20).trim(),
+	addedById: z.string().min(1).max(32).trim(),
 	newUserIds: z
-		.array(z.string().min(1).max(20).trim())
+		.array(z.string().min(1).max(32).trim())
 		.min(1, 'Please select at least one new member')
 });
 
@@ -13,12 +13,12 @@ export const createGroupSchema = z.object({
 		.min(1, 'Group name is required')
 		.max(255, 'Max lenght is 255 characters')
 		.trim(),
-	creatorId: z.string().min(1).max(20).trim(),
-	userIds: z.array(z.string().min(1).max(20).trim()).min(1, 'Please select at least one member')
+	creatorId: z.string().min(1).max(32).trim(),
+	userIds: z.array(z.string().min(1).max(32).trim()).min(1, 'Please select at least one member')
 });
 
 export const messageInputSchema = z.object({
-	senderId: z.string().min(1).max(30).trim(),
+	senderId: z.string().min(1).max(32).trim(),
 	text: z
 		.string()
 		.min(1, 'Message is required.')
@@ -27,7 +27,7 @@ export const messageInputSchema = z.object({
 });
 
 export const imageInputSchema = z.object({
-	senderId: z.string().min(1).max(30).trim(),
+	senderId: z.string().min(1).max(32).trim(),
 	image: z
 		.instanceof(File, { message: 'Please select file to submit. ' })
 		.refine((file) => file.size > 0, 'Image must have more that 0 kb')
