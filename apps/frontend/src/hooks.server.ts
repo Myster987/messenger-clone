@@ -26,7 +26,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.session = session?.session ?? null;
 
 	event.locals.apiClient = ky.create({
-		prefixUrl: env.PUBLIC_API_URL,
+		prefixUrl: env.PUBLIC_API_URL || 'http://placeholder',
 		credentials: 'include',
 		fetch: event.fetch,
 		throwHttpErrors: false

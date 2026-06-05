@@ -22,7 +22,7 @@
 		});
 
 	$: if (browser)
-		$ioClient = io(env.PUBLIC_API_URL, {
+		$ioClient = io(env.PUBLIC_API_URL || 'http://placeholder', {
 			path: '/api/socket/io',
 			addTrailingSlash: false
 		});

@@ -41,8 +41,8 @@ export const auth = betterAuth({
 
 	emailAndPassword: { enabled: true },
 
-	baseURL: env.BETTER_AUTH_URL,
-	secret: env.BETTER_AUTH_SECRET,
+	baseURL: env.BETTER_AUTH_URL || 'http://placeholder',
+	secret: env.BETTER_AUTH_SECRET || 'dummysecret123',
 
 	plugins: [sveltekitCookies(getRequestEvent)]
 });

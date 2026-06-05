@@ -10,7 +10,7 @@ export const conversationsStore = createAsyncStore<StoreConversation[]>();
 
 export const apiClientStore = writable(
 	ky.create({
-		prefixUrl: env.PUBLIC_API_URL,
+		prefixUrl: env.PUBLIC_API_URL || 'http://placeholder',
 		credentials: 'include',
 		throwHttpErrors: false
 	})

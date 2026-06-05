@@ -5,7 +5,7 @@ import * as schema from './schema';
 
 const client = createClient({
 	url: env.SECRET_DATABASE_URL || 'http://db:8080',
-	authToken: env.SECRET_DATABASE_TOKEN
+	authToken: env.SECRET_DATABASE_TOKEN || 'dummysecret123'
 });
 
 export const db = drizzle(client, { schema });
