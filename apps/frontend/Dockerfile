@@ -7,7 +7,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps/frontend/package.json ./apps/frontend/
 COPY apps/db/package.json ./apps/db/
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY apps/frontend ./apps/frontend
 COPY apps/db ./apps/db
