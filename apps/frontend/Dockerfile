@@ -8,7 +8,7 @@ RUN pnpm install
 
 COPY . .
 
-RUN pnpm run frontend:build
+RUN pnpm run build
 RUN pnpm prune --prod
 
 FROM builder AS prod
