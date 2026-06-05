@@ -41,7 +41,7 @@ export const api = new Hono<Env>()
     c.set("io", (globalThis as ExtendedGlobal)[GlobalThisWSS]);
     await next();
   })
-  .get("/", (c) => c.text("Hello World!"))
+  .get("/health", (c) => c.text("API is healthy!"))
   // .route("/auth", authRoute)
   .route("/users", usersRoute)
   .route("/conversations", conversationsRoute)
