@@ -1,24 +1,25 @@
 FROM node:22-slim AS builder
-
 WORKDIR /app
 
-COPY package*.json .
-RUN npm i -g pnpm
-RUN pnpm install
+RUN npm i -g pnpm@10.33.0
 
-COPY . .
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/db/package.json ./apps/db/
 
-RUN pnpm run build
-RUN pnpm prune --prod
+RUN pnpm install --frozen-lockfile
 
-FROM builder AS prod
+COPY apps/frontend ./apps/frontend
+COPY apps/db ./apps/db
 
+RUN pnpm --filter ./apps/frontend run build
+
+FROM node:22-slim AS prod
 WORKDIR /app
 
-COPY --from=builder /app/build build/
-COPY --from=builder /app/node_modules node_modules/
-COPY --from=builder /app/package.json .
+COPY --from=builder /app/apps/frontend/build ./build
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/frontend/package.json .
 
 EXPOSE 3000
-
-CMD ["node", "apps/frontend/build"]
+CMD ["node", "build/index.js"]
