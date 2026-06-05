@@ -4,7 +4,7 @@ import { createClient } from '@libsql/client';
 import * as schema from './schema';
 
 const client = createClient({
-	url: env.SECRET_DATABASE_URL.trim() || 'http://db:8080',
+	url: env.SECRET_DATABASE_URL || 'http://db:8080',
 	authToken: env.SECRET_DATABASE_TOKEN
 });
 
