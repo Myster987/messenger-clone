@@ -59,6 +59,6 @@
 		"sveltekit-superforms": "2.17.0",
 		"tailwind-merge": "^2.6.1",
 		"tailwind-variants": "^0.2.1",
-		"zod": "^3.25.76"
+		"zod": "^4.0.0"
 	}
 }

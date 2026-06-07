@@ -2,12 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { Server } from "socket.io";
-import {
-  usersRoute,
-  // authRoute,
-  conversationsRoute,
-  socketRoute,
-} from "./routes";
+import { usersRoute, conversationsRoute, socketRoute } from "./routes";
 import {
   type ExtendedGlobal,
   GlobalThisWSS,
@@ -42,7 +37,6 @@ export const api = new Hono<Env>()
     await next();
   })
   .get("/health", (c) => c.text("API is healthy!"))
-  // .route("/auth", authRoute)
   .route("/users", usersRoute)
   .route("/conversations", conversationsRoute)
   .route("/socket", socketRoute);
