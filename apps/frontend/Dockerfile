@@ -12,12 +12,13 @@ COPY apps/frontend ./apps/frontend
 
 RUN pnpm --filter ./apps/frontend run build
 
+RUN pnpm --filter ./apps/frontend deploy --prod /deploy
+
+
 FROM node:22-slim AS prod
 WORKDIR /app
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/frontend/node_modules ./apps/frontend/node_modules
-
+COPY --from=builder /deploy/node_modules ./node_modules
 COPY --from=builder /app/apps/frontend/build ./build
 COPY --from=builder /app/apps/frontend/package.json .
 
