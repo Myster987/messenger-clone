@@ -16,5 +16,10 @@
     "frontend:start": "cd ./apps/frontend && node build/index.js",
     "backend:dev": "cd ./apps/backend && pnpm run dev",
     "backend:start": "cd ./apps/backend && pnpm run start"
+  },
+  "pnpm": {
+    "overrides": {
+      "kysely": "0.28.17"
+    }
   }
 }
