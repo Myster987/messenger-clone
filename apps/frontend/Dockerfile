@@ -12,7 +12,7 @@ COPY apps/frontend ./apps/frontend
 
 RUN pnpm --filter ./apps/frontend run build
 
-RUN pnpm --filter ./apps/frontend deploy --prod /deploy
+RUN pnpm --filter ./apps/frontend deploy --prod --legacy /deploy
 
 
 FROM node:22-slim AS prod
