@@ -14,7 +14,7 @@
     "db:push": "drizzle-kit push --config=./drizzle.config.ts",
     "db:pull": "drizzle-kit pull --config=./drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=./drizzle.config.ts",
-    "db:migrate": "tsx --env-file=.env ./src/migrate.ts"
+    "db:migrate": "tsx --env-file-if-exists=.env ./src/migrate.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",
