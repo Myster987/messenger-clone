@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { auth, type User } from '@/auth';
 import { signUpFormSchema } from '@/auth/form_schemas';
 import type { Actions, PageServerLoad } from './$types';
@@ -8,13 +8,13 @@ import type { ApiResponse } from '@/types';
 
 export const load: PageServerLoad = async () => {
 	return {
-		form: await superValidate(zod(signUpFormSchema))
+		form: await superValidate(zod4(signUpFormSchema))
 	};
 };
 
 export const actions: Actions = {
 	default: async ({ request, cookies, locals: { apiClient } }) => {
-		const form = await superValidate(request, zod(signUpFormSchema));
+		const form = await superValidate(request, zod4(signUpFormSchema));
 		if (!form.valid) {
 			return fail(400, { form });
 		}

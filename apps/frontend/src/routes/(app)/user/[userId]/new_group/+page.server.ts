@@ -1,19 +1,19 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { createGroupSchema } from '@/auth/form_schemas';
 import type { ApiResponse } from '@/types';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
 	return {
-		form: await superValidate(zod(createGroupSchema))
+		form: await superValidate(zod4(createGroupSchema))
 	};
 };
 
 export const actions: Actions = {
 	createGroup: async ({ request, params: { userId }, locals: { apiClient } }) => {
-		const form = await superValidate(request, zod(createGroupSchema));
+		const form = await superValidate(request, zod4(createGroupSchema));
 
 		if (!form.valid) {
 			return fail(400, { form });

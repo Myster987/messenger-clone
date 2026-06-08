@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
 	import { fileProxy, superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { imageInputSchema, messageInputSchema } from '@/auth/form_schemas';
 	import { ImageUp, SendHorizontal } from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@
 	let inputElement: HTMLElement;
 
 	const messageForm = superForm(messageFormObject, {
-		validators: zodClient(messageInputSchema),
+		validators: zod4Client(messageInputSchema),
 		invalidateAll: false,
 		onSubmit({ formData }) {
 			formData.append('senderId', currentMemberId);
@@ -40,7 +40,7 @@
 	$: ({ form: messageFormData, enhance: messageEnhance } = messageForm);
 
 	const imageForm = superForm(imageFormObject, {
-		validators: zodClient(imageInputSchema),
+		validators: zod4Client(imageInputSchema),
 		invalidateAll: false,
 		onSubmit({ formData }) {
 			formData.append('senderId', currentMemberId);

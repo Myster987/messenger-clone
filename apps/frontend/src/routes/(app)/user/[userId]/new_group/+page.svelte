@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { createGroupSchema } from '@/auth/form_schemas';
 	import { userStore, conversationsStore } from '@/stores';
 	import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@
 	export let data: PageData;
 
 	const form = superForm(data.form, {
-		validators: zodClient(createGroupSchema),
+		validators: zod4Client(createGroupSchema),
 		invalidateAll: false
 	});
 

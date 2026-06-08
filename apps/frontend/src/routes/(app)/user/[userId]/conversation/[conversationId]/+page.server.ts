@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { message, superValidate, withFiles } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { addMembersToGroup, imageInputSchema, messageInputSchema } from '@/auth/form_schemas';
 import { createFormDataFromObject } from '@/utils';
 import type {
@@ -37,16 +37,16 @@ export const load: PageServerLoad = async ({
 
 	return {
 		conversationData: await fetchConversationData(),
-		addMembersToGroupFormObject: await superValidate(zod(addMembersToGroup)),
-		messageFormObject: await superValidate(zod(messageInputSchema)),
-		imageFormObject: await superValidate(zod(imageInputSchema)),
+		addMembersToGroupFormObject: await superValidate(zod4(addMembersToGroup)),
+		messageFormObject: await superValidate(zod4(messageInputSchema)),
+		imageFormObject: await superValidate(zod4(imageInputSchema)),
 		messagesData: await fetchMessages()
 	};
 };
 
 export const actions: Actions = {
 	sendMessage: async ({ request, params: { conversationId }, locals: { apiClient } }) => {
-		const form = await superValidate(request, zod(messageInputSchema));
+		const form = await superValidate(request, zod4(messageInputSchema));
 
 		if (!form.valid) {
 			return message(form, { text: 'Invalid message content.', success: false });
@@ -72,7 +72,7 @@ export const actions: Actions = {
 		return { form, success: true };
 	},
 	sendImage: async ({ request, params: { conversationId }, locals: { apiClient } }) => {
-		const form = await superValidate(request, zod(imageInputSchema));
+		const form = await superValidate(request, zod4(imageInputSchema));
 
 		if (!form.valid) {
 			return message(withFiles(form), { text: 'Invalid message content.', success: false });
@@ -237,7 +237,7 @@ export const actions: Actions = {
 		};
 	},
 	addNewMembersToGroup: async ({ request, params: { conversationId }, locals: { apiClient } }) => {
-		const form = await superValidate(request, zod(addMembersToGroup));
+		const form = await superValidate(request, zod4(addMembersToGroup));
 
 		if (!form.valid) {
 			return message(form, { text: 'Invalid data.', success: false });

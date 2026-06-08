@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { conversationsStore, apiClientStore, userStore } from '@/stores';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { addMembersToGroup } from '@/auth/form_schemas';
 	import { toast } from 'svelte-sonner';
 	import { Check, LoaderCircle, UserRoundPlus, X } from 'lucide-svelte';
@@ -18,7 +18,7 @@
 	export let addMembersToGroupFormObject: SuperValidated<Infer<typeof addMembersToGroup>>;
 
 	const form = superForm(addMembersToGroupFormObject, {
-		validators: zodClient(addMembersToGroup),
+		validators: zod4Client(addMembersToGroup),
 		onUpdated({ form }) {
 			if (form.message.success) {
 				toast.success(form.message.text);

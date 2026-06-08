@@ -1,4 +1,5 @@
-import { z } from 'zod';
+// import { z } from 'zod';
+import { z } from 'zod/v4';
 
 export const addMembersToGroup = z.object({
 	addedById: z.string().min(1).max(32).trim(),

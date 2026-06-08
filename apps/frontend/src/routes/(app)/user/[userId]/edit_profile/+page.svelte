@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { fileProxy, superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { userStore } from '@/stores';
 	import { editUserSchema } from '@/auth/form_schemas';
 	import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@
 	};
 
 	const form = superForm(data.form, {
-		validators: zodClient(editUserSchema),
+		validators: zod4Client(editUserSchema),
 		onSubmit({ formData, cancel }) {
 			if (newImageUploaded) {
 				formData.append('profileImage', $formData.profileImage as File);

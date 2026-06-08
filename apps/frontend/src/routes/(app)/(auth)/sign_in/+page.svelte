@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { signInFormSchema } from '@/auth/form_schemas';
 	import { toast } from 'svelte-sonner';
 	import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@
 	export let data: PageData;
 
 	const form = superForm(data.form, {
-		validators: zodClient(signInFormSchema),
+		validators: zod4Client(signInFormSchema),
 		onSubmit() {
 			toast.loading('Please wait...');
 		},
